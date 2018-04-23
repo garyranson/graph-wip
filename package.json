@@ -1,0 +1,21 @@
+{
+  "name": "graphwork",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "doc"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "expression-compiler": "github:garyranson/expression-compiler"
+  },
+  "devDependencies": {
+    "systemjs": "^0.21.3",
+    "typescript": "^2.8.3"
+  }
+}
