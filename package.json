@@ -17,5 +17,9 @@
   "devDependencies": {
     "systemjs": "^0.21.3",
     "typescript": "^2.8.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/garyranson/graph-work.git"
   }
 }
