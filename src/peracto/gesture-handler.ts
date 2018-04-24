@@ -2,7 +2,7 @@ import DragHandler from "./drag-handler";
 import CellFinder from "./cell-finder";
 import {GpGraphView, GpNode, GpNodeView, GraphGestureEvent, HoverHandler} from "../types";
 import NodeTemplateLibrary from "../Templates/template-library";
-import GpNodeResizeHandler from "./node-resizer-handler";
+//import GpNodeResizeHandler from "./node-resizer-handler";
 
 const emptyGestureEvent : GraphGestureEvent = Object.freeze({
   instance: null,
@@ -11,6 +11,49 @@ const emptyGestureEvent : GraphGestureEvent = Object.freeze({
   action: null,
   data: null
 });
+
+
+export interface GestureHub {
+  canClick() : boolean;
+  canDrag(): boolean;
+  getDragTolerance() : number;
+  startDrag(): void;
+  createDragHandler(evt: Event) : DragHandler;
+  tap(evt: MouseEvent, x: any) : void;
+}
+
+class CellMoverHub implements GestureHub {
+  canClick(): boolean {
+    return true;
+  }
+
+  canDrag(): boolean {
+    return true;
+  }
+
+  getDragTolerance(): number {
+    return 0;
+  }
+
+  startDrag(): void {
+  }
+
+  createDragHandler(evt: Event) : DragHandler {
+    return null; //new DragHandler();
+  }
+
+  tap(e: MouseEvent, x: any) {
+    console.log(`Click fired ${x.tapCount} times`);
+  }
+
+}
+
+
+const actionCache = new Map<string,CellMoverHub>([
+  ["mover",new CellMoverHub()]
+]);
+
+
 
 export default class GestureHandler {
   graph: GpGraphView;
@@ -26,8 +69,8 @@ export default class GestureHandler {
     this.highlighter = new Highlighter(graph);
   }
 
-  tap(e: MouseEvent, x: any) {
-    console.log(`Click fired ${x.tapCount} times`);
+  getCurrentAction() : GestureHub {
+    return actionCache.get("mover");
   }
 
   over(evt: MouseEvent) {
@@ -56,7 +99,7 @@ export default class GestureHandler {
 
   createDragHandler(e: MouseEvent): DragHandler {
     if(this.currentEvent.action=='resizer') {
-      return new GpNodeResizeHandler(this.graph,this.currentEvent);
+      //return new GpNodeResizeHandler(this.graph,this.currentEvent);
     }
     return null;
   }

@@ -131,10 +131,10 @@ function findAction(name) {
 exports.findAction = findAction;
 function expressionParse(expr) {
     const compiler = new expression_compiler_1.Compiler();
-    const r = compiler.compile(expr).toFunction();
+    const r = compiler.compile(expr);
     return {
         key: expr,
-        expr: r
+        expr: r.toFunction()
     };
 }
 function textExprFactory(o) {

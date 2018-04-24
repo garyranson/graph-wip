@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const cell_finder_1 = require("./cell-finder");
 const template_library_1 = require("../Templates/template-library");
-const node_resizer_handler_1 = require("./node-resizer-handler");
+//import GpNodeResizeHandler from "./node-resizer-handler";
 const emptyGestureEvent = Object.freeze({
     instance: null,
     context: null,
@@ -10,6 +10,28 @@ const emptyGestureEvent = Object.freeze({
     action: null,
     data: null
 });
+class CellMoverHub {
+    canClick() {
+        return true;
+    }
+    canDrag() {
+        return true;
+    }
+    getDragTolerance() {
+        return 0;
+    }
+    startDrag() {
+    }
+    createDragHandler(evt) {
+        return null; //new DragHandler();
+    }
+    tap(e, x) {
+        console.log(`Click fired ${x.tapCount} times`);
+    }
+}
+const actionCache = new Map([
+    ["mover", new CellMoverHub()]
+]);
 class GestureHandler {
     constructor(graph) {
         this.currentEvent = emptyGestureEvent;
@@ -17,8 +39,8 @@ class GestureHandler {
         this.finder = cell_finder_1.default(graph, emptyGestureEvent);
         this.highlighter = new Highlighter(graph);
     }
-    tap(e, x) {
-        console.log(`Click fired ${x.tapCount} times`);
+    getCurrentAction() {
+        return actionCache.get("mover");
     }
     over(evt) {
         const currentEvent = this.finder(evt.relatedTarget);
@@ -40,7 +62,7 @@ class GestureHandler {
     }
     createDragHandler(e) {
         if (this.currentEvent.action == 'resizer') {
-            return new node_resizer_handler_1.default(this.graph, this.currentEvent);
+            //return new GpNodeResizeHandler(this.graph,this.currentEvent);
         }
         return null;
     }

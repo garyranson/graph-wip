@@ -155,10 +155,10 @@ export function findAction(name: string) : TemplateActionFactory {
 
 function expressionParse(expr: string) {
   const compiler = new Compiler();
-  const r = compiler.compile(expr).toFunction();
+  const r = compiler.compile(expr);
   return {
     key: expr,
-    expr: r
+    expr: r.toFunction()
   };
 }
 

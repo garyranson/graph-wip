@@ -1,1 +1,0 @@
-{"version":3,"file":"RectangleTemplate.js","sourceRoot":"","sources":["../../src/Templates/RectangleTemplate.ts"],"names":[],"mappings":";;;;;;;;;;;YAIA,oBAAA;gBAEE,MAAM,CAAC,MAAiB;oBACtB,OAAO,sBAAgB,CAAC,MAAM,EAAE;wBAC9B,CAAC,EAAE,CAAC;wBACJ,CAAC,EAAE,CAAC;wBACJ,KAAK,EAAE,MAAM,CAAC,KAAK;wBACnB,MAAM,EAAE,MAAM,CAAC,MAAM;qBACtB,CAAC,CAAC;gBACL,CAAC;aACF,CAAA;;QACD,CAAC"}

@@ -7,107 +7,83 @@ function DomGestureHandler(container, handler) {
     function state0(container, handler) {
         container.addEventListener("mousedown", onMouseDown);
         container.addEventListener("mouseout", onMouseEnter);
-        container.addEventListener("mousemove", onMouseMove);
-        let hover = null;
-        let hoverTime = 0;
-        let hoverTimer = interval(900);
-        let hoverEvent;
-        resetHover(true);
         return () => {
             container.removeEventListener("mousedown", onMouseDown);
             container.removeEventListener("mouseout", onMouseEnter);
-            container.removeEventListener("mousemove", onMouseMove);
-            resetHover(false);
         };
         function onMouseDown(e) {
             e.preventDefault();
-            let tol = handler.getDragTolerance(e);
-            if (tol >= 0) {
-                setState(state1, container, handler, e, tol);
+            const action = handler.getCurrentAction();
+            if (!action)
                 return;
+            if (action.canDrag() && action.getDragTolerance() === 0) {
+                let drag = action.createDragHandler(e);
+                setState(state2, container, handler, drag, {
+                    pointerX: e.clientX,
+                    pointerY: e.clientY,
+                    targetElement: e.target
+                });
             }
-            let drag = handler.createDragHandler(e);
-            if (!drag) {
-                setState(state0, container, handler);
+            else if (action.canClick()) {
+                setState(state1, container, handler, e, action);
             }
-            setState(state2, container, handler, drag, {
-                pointerX: e.clientX,
-                pointerY: e.clientY,
-                targetElement: e.target
-            });
         }
         function onMouseEnter(e) {
             handler.over(e);
         }
-        function onMouseMove(e) {
-            hoverTime = Date.now();
-            hoverEvent = e;
-            if (hover && hover.canCancel(e)) {
-                resetHover(true);
-            }
-        }
-        function hoverCallback() {
-            if (Date.now() - hoverTime >= 1000) {
-                hover = handler.createHoverHandler(hoverEvent);
-                if (hover) {
-                    hoverTimer();
-                }
-            }
-        }
-        function resetHover(restart) {
-            if (hover) {
-                hover.cancel(null);
-                hover = null;
-            }
-            hoverTimer(restart ? hoverCallback : null);
-        }
     }
-    function state1(container, handler, e, tolerance) {
-        document.addEventListener("mousedown", onMouseDown, true);
-        document.addEventListener("mouseup", onMouseUp, true);
-        document.addEventListener("mousemove", onMouseMove, true);
+    function state1(container, handler, e, action) {
         const pointerX = e.clientX;
         const pointerY = e.clientY;
         const targetElement = e.target;
+        const tolerance = action.getDragTolerance();
         const tapTimer = timeout(250);
+        const clickable = action.canClick();
+        const draggable = action.canDrag();
         let mouseDownTime = Date.now();
         let tapCount = 0;
-        let tapEvent = null;
+        document.addEventListener("mouseup", onMouseUp, true);
+        if (clickable)
+            document.addEventListener("mousedown", onMouseDown, true);
+        if (draggable)
+            document.addEventListener("mousemove", onMouseMove, true);
         return () => {
-            document.removeEventListener("mousedown", onMouseDown, true);
             document.removeEventListener("mouseup", onMouseUp, true);
-            document.removeEventListener("mousemove", onMouseMove, true);
+            if (clickable)
+                document.removeEventListener("mousedown", onMouseDown, true);
+            if (draggable)
+                document.removeEventListener("mousemove", onMouseMove, true);
             tapTimer();
-            tapEvent = null;
         };
-        function onMouseDown(e) {
-            mouseDownTime = Date.now();
-            tapTimer();
-            e.preventDefault();
-        }
         function onMouseUp(e) {
             e.preventDefault();
-            if (Date.now() - mouseDownTime >= 250) {
-                setState(state0, container, handler);
-                return;
+            if (clickable && Date.now() - mouseDownTime < 250) {
+                // We're on a clickable field within the click timeout period
+                tapCount++;
+                tapTimer(() => {
+                    action.tap(e, { tapCount });
+                    setState(state0, container, handler);
+                });
             }
-            tapCount++;
-            tapTimer(onClickTimeout);
-            tapEvent = e;
+            else {
+                setState(state0, container, handler);
+            }
         }
-        function onClickTimeout() {
-            handler.tap(tapEvent, { tapCount });
+        function onMouseDown(e) {
+            e.preventDefault();
+            mouseDownTime = Date.now();
             tapTimer();
-            setState(state0, container, handler);
         }
         function onMouseMove(e) {
             e.preventDefault();
-            if (Math.abs(e.clientX - pointerX) > tolerance || Math.abs(e.clientY - pointerY) > tolerance) {
-                let drag = handler.createDragHandler(e);
-                if (!drag) {
-                    setState(state0, container, handler);
-                    return;
-                }
+            if (Math.abs(e.clientX - pointerX) <= tolerance && Math.abs(e.clientY - pointerY) <= tolerance) {
+                return;
+            }
+            let drag = action.createDragHandler(e);
+            if (!drag) {
+                setState(state0, container, handler);
+            }
+            else {
                 setState(state2, container, handler, drag, {
                     pointerX,
                     pointerY,
@@ -128,27 +104,27 @@ function DomGestureHandler(container, handler) {
             document.removeEventListener("mouseout", onMouseOut, true);
         };
         function onMouseMove(e) {
+            e.preventDefault();
+            e.stopPropagation();
             if (firstMove) {
                 drag.start(e, dragHandlerData);
                 firstMove = false;
             }
             drag.move(e);
-            e.preventDefault();
-            e.stopPropagation();
         }
         function onMouseUp(e) {
+            e.preventDefault();
+            e.stopPropagation();
             if (!firstMove) {
                 drag.drop(e);
             }
             drag.cancel();
             setState(state0, container, handler);
-            e.preventDefault();
-            e.stopPropagation();
         }
         function onMouseOut(e) {
-            drag.over(e);
             e.preventDefault();
             e.stopPropagation();
+            drag.over(e);
         }
     }
 }
@@ -179,14 +155,6 @@ function timeout(timeout) {
         if (timer)
             clearTimeout(timer);
         timer = handler ? setTimeout(handler, timeout) : 0;
-    };
-}
-function interval(timeout) {
-    let timer = 0;
-    return (handler) => {
-        if (timer)
-            clearInterval(timer);
-        timer = handler ? setInterval(handler, timeout) : 0;
     };
 }
 //# sourceMappingURL=dom-gesture-handler.js.map

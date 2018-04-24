@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "expression-compiler": "github:garyranson/expression-compiler"
+    "expression-compiler": "git+https://github.com/garyranson/expression-compiler.git"
   },
   "devDependencies": {
     "systemjs": "^0.21.3",
