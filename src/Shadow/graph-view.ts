@@ -1,9 +1,11 @@
 import TemplateLibrary from "../Templates/template-library";
 import {GpGraphView, GpNode, GpNodeView, GpParentNode} from "../types";
+import GpNodeSelectionHandler from "../peracto/node-selection-handler";
 
 export default class GpGraphViewImpl implements GpGraphView  {
   map: Map<number, GpNodeView> = new Map<number, GpNodeView>();
   container: SVGSVGElement;
+  selectionManager: GpNodeSelectionHandler;
 
   trigger = Trigger(() => {
     this.delete.fire();
@@ -14,11 +16,32 @@ export default class GpGraphViewImpl implements GpGraphView  {
 
   constructor(svg: SVGSVGElement) {
     this.container = svg;
+    this.selectionManager = new GpNodeSelectionHandler(this);
   }
 
-  appendNodeView(view: GpNodeView): void {
+  getSelectionManager() : GpNodeSelectionHandler {
+    return this.selectionManager;
+  }
+
+  appendNodeView(view: GpNodeView): GpNodeView {
     if(!view) return;
     this.container.appendChild(view.getRoot());
+    return view;
+  }
+
+  getContainedNodes(x: number, y: number, width: number, height: number) : GpNodeView[] {
+    const arr: GpNodeView[] = [];
+    const right = x + width;
+    const bottom = y + height;
+
+    this.map.forEach((v) => {
+      const box = v.getNode();
+      if (box.x >= x && box.y >= y && box.y + box.height <= bottom && box.x + box.width <= right) {
+        arr.push(v);
+      }
+    });
+
+    return arr;
   }
 
 
@@ -26,11 +49,24 @@ export default class GpGraphViewImpl implements GpGraphView  {
     return this.container;
   }
 
+  getNodeView(element: Element) : GpNodeView {
+    while (element && element!=this.container) {
+      let nodeId = element.getAttribute("pxnode");
+      if (nodeId) {
+        return this.getInstance(parseInt(nodeId));
+      }
+      element = element.parentElement;
+    }
+    return null;
+  }
+
+
   buildTree(node: GpNode) : GpNodeView {
-    //Check if we already have the instance
+    //Check if we already have the nodeView
     let instance = this.map.get(node.getId());
     if (!instance) {
       instance = TemplateLibrary.createView(node);
+      instance.addClass('gpobject');
       this.map.set(node.getId(), instance);
 
       if (node.hasChildren()) {
@@ -151,3 +187,6 @@ window.addEventListener('resize', resize);
 function resize() {
   console.log('resize');
 }
+
+
+

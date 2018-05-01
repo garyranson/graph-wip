@@ -22,7 +22,6 @@ export default class GpTemplateImpl implements GpNodeTemplate {
     const nodeId= node.getId() as any;
 
     root.setAttribute('pxnode', nodeId);
-    root.classList.add('gpobject');
     const actions = root.querySelectorAll('[pxaction]');
 
     for(let i=0;i<actions.length;i++) {

@@ -1,42 +1,50 @@
 import {GpNode, GpNodeView, TemplateExec} from "../types";
 
 export default class GpNodeViewImpl implements GpNodeView  {
-  root: Element;
+  element: Element;
   exec: TemplateExec;
-  context: GpNode;
+  node: GpNode;
+
   constructor(root: Element, exec: TemplateExec, context: GpNode) {
-    this.root = root;
+    this.element = root;
     this.exec = exec;
-    this.context = context;
+    this.node = context;
   }
 
   appendChild(child: GpNodeView) {
     if(child) {
-      this.root.appendChild(child.getRoot());
+      this.element.appendChild(child.getRoot());
     }
   }
 
   remove() {
-    this.root.remove();
+    this.element.remove();
   }
 
   getRoot() : Element {
-    return this.root;
+    return this.element;
   }
 
   getNode() : GpNode {
-    return this.context;
+    return this.node;
   }
 
   refresh() : void {
-    this.exec(this.context);
+    this.exec(this.node);
   }
 
-  addClass(name: string) {
-    this.root.classList.add(name);
+  addClass(name: string) : GpNodeView {
+    this.element.classList.add(name);
+    return this;
   }
 
-  removeClass(name: string) {
-    this.root.classList.remove(name);
+  removeClass(name: string) : GpNodeView {
+    this.element.classList.remove(name);
+    return this;
+  }
+
+  setAttribute(name: string, value: any) : GpNodeView {
+    this.element.setAttribute(name,value);
+    return this;
   }
 }

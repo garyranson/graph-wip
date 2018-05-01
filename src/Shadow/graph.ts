@@ -18,7 +18,7 @@ export default class GpGraphImpl implements GpGraph {
 
   constructor() {
     this.id = 0;
-    this.rootNode = new GpParentNodeImpl(this, "rootNode", 0, 0, 2000, 2000);
+    this.rootNode = new GpParentNodeImpl(this, "$node-root", 0, 0, 2000, 2000);
   }
 
   bindView(view:GpGraphView) : void {

@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const template_library_1 = require("../Templates/template-library");
+const node_selection_handler_1 = require("../peracto/node-selection-handler");
 class GpGraphViewImpl {
     constructor(svg) {
         this.map = new Map();
@@ -42,20 +43,48 @@ class GpGraphViewImpl {
             e.refresh();
         });
         this.container = svg;
+        this.selectionManager = new node_selection_handler_1.default(this);
+    }
+    getSelectionManager() {
+        return this.selectionManager;
     }
     appendNodeView(view) {
         if (!view)
             return;
         this.container.appendChild(view.getRoot());
+        return view;
+    }
+    getContainedNodes(x, y, width, height) {
+        const arr = [];
+        const right = x + width;
+        const bottom = y + height;
+        this.map.forEach((v) => {
+            const box = v.getNode();
+            if (box.x >= x && box.y >= y && box.y + box.height <= bottom && box.x + box.width <= right) {
+                arr.push(v);
+            }
+        });
+        return arr;
     }
     getContainer() {
         return this.container;
     }
+    getNodeView(element) {
+        while (element && element != this.container) {
+            let nodeId = element.getAttribute("pxnode");
+            if (nodeId) {
+                return this.getInstance(parseInt(nodeId));
+            }
+            element = element.parentElement;
+        }
+        return null;
+    }
     buildTree(node) {
-        //Check if we already have the instance
+        //Check if we already have the nodeView
         let instance = this.map.get(node.getId());
         if (!instance) {
             instance = template_library_1.default.createView(node);
+            instance.addClass('gpobject');
             this.map.set(node.getId(), instance);
             if (node.hasChildren()) {
                 for (const child of node.getChildren()) {

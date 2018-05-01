@@ -18,6 +18,9 @@ class GpNodeImpl {
     getId() {
         return this._objectId;
     }
+    canSelect() {
+        return this._objectId != 0;
+    }
     setParent(value) {
         if (this._parent === value) {
             return;
@@ -82,6 +85,12 @@ class GpNodeImpl {
     }
     appendChild(child) {
         throw "not implemented";
+    }
+    createShadow() {
+        function shadow() {
+        }
+        shadow.prototype = this;
+        return new shadow();
     }
 }
 exports.default = GpNodeImpl;

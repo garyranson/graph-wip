@@ -1,173 +1,68 @@
-import DragHandler from "./drag-handler";
 import CellFinder from "./cell-finder";
-import {GpGraphView, GpNode, GpNodeView, GraphGestureEvent, HoverHandler} from "../types";
-import NodeTemplateLibrary from "../Templates/template-library";
-//import GpNodeResizeHandler from "./node-resizer-handler";
+import {DragHandler, GpGraphView, GraphGestureEvent, NodeAction} from "../types";
+import GpDelegate from "./event";
+import nodeActionLibrary from "../node-action/node-action-library";
 
 const emptyGestureEvent : GraphGestureEvent = Object.freeze({
-  instance: null,
-  context: null,
+  nodeView: null,
+  node: null,
   nodeId: null,
   action: null,
   data: null
 });
 
-
-export interface GestureHub {
-  canClick() : boolean;
-  canDrag(): boolean;
-  getDragTolerance() : number;
-  startDrag(): void;
-  createDragHandler(evt: Event) : DragHandler;
-  tap(evt: MouseEvent, x: any) : void;
-}
-
-class CellMoverHub implements GestureHub {
-  canClick(): boolean {
-    return true;
-  }
-
-  canDrag(): boolean {
-    return true;
-  }
-
-  getDragTolerance(): number {
-    return 0;
-  }
-
-  startDrag(): void {
-  }
-
-  createDragHandler(evt: Event) : DragHandler {
-    return null; //new DragHandler();
-  }
-
-  tap(e: MouseEvent, x: any) {
-    console.log(`Click fired ${x.tapCount} times`);
-  }
-
-}
-
-
-const actionCache = new Map<string,CellMoverHub>([
-  ["mover",new CellMoverHub()]
-]);
-
-
-
 export default class GestureHandler {
-  graph: GpGraphView;
   finder: (node: Element) => GraphGestureEvent;
   currentEvent: GraphGestureEvent = emptyGestureEvent;
+  currentAction: NodeAction = nodeActionLibrary.get('mover');
 
-  highlighter : Highlighter;
+  public onOver = new GpDelegate<{current: GraphGestureEvent, previous: GraphGestureEvent}>();
 
-
-  constructor(graph: GpGraphView) {
-    this.graph = graph;
+  constructor(protected graph: GpGraphView) {
     this.finder = CellFinder(graph, emptyGestureEvent);
-    this.highlighter = new Highlighter(graph);
   }
 
-  getCurrentAction() : GestureHub {
-    return actionCache.get("mover");
-  }
+  over(element: Element) : NodeAction {
 
-  over(evt: MouseEvent) {
-    const currentEvent = this.finder(evt.relatedTarget as Element);
+    const currentEvent = this.finder(element as Element);
+
     if (currentEvent != this.currentEvent) {
-      console.log(`Something has changed:${currentEvent.nodeId}:${currentEvent.action}:${currentEvent.data}`);
+      const previousEvent = this.currentEvent;
+      console.log('element changes',currentEvent,previousEvent)
 
-      const previousEvent  = this.currentEvent;
-
-      if(previousEvent && previousEvent.context!=currentEvent.context) {
-        this.highlighter.off(previousEvent.context);
-        this.highlighter.on(currentEvent.context);
+      if (previousEvent && previousEvent.node != currentEvent.node) {
+        console.log('fire');
+        this.onOver.fire({current: currentEvent, previous: previousEvent});
+      } else {
+        console.log('matches???',previousEvent.node,currentEvent.node);
       }
 
+      this.currentAction = nodeActionLibrary.get(currentEvent.action||'canvas');
       this.currentEvent = currentEvent;
     }
-  }
-
-  getDragTolerance(e: MouseEvent) {
-    if(this.currentEvent.action=='canvas') {
-      return 0;
+    if (!this.currentEvent.action) {
+      console.log(element);
     }
-
-    return 10;
+    console.log('action:'+this.currentEvent.action);
+    return this.currentAction;
   }
 
-  createDragHandler(e: MouseEvent): DragHandler {
-    if(this.currentEvent.action=='resizer') {
-      //return new GpNodeResizeHandler(this.graph,this.currentEvent);
-    }
-    return null;
+  createDragHandler(e: MouseEvent) : DragHandler {
+    this.onOver.fire(null);
+    return this.currentAction.createDragHandler(this.graph, this.currentEvent, e);
   }
 
-  createHoverHandler(e: MouseEvent): HoverHandler {
-    return null;
-  }
-}
-
-
-
-class Highlighter {
-  highlights = new Map<number,{view:GpNodeView, timer:number}>();
-  graphView: GpGraphView;
-
-  constructor(graphView: GpGraphView) {
-    this.graphView = graphView;
-  }
-
-  on(node: GpNode) {
-
-    if(!node) return;
-
-    const nodeId = node.getId();
-    const obj = this.highlights.get(nodeId);
-
-    const element = this.graphView.getInstance(nodeId);
-    element.addClass('hover');
-
-    if(obj) {
-      if (obj.timer) {
-        clearTimeout(obj.timer);
-        obj.timer = 0;
-      }
-      obj.view.removeClass('gpFade');
-
-
-
-    } else {
-      const view = NodeTemplateLibrary.createView(node, 'outline');
-      this.graphView.appendNodeView(view);
-
-      this.highlights.set(nodeId, {
-        view,
-        timer: 0
-      });
+  clickHandler(clickCount: number, e: MouseEvent) {
+    if (this.currentAction.canClick()) {
+      this.currentAction.tap(this.graph, clickCount, this.currentEvent, e);
     }
   }
 
-  off(node: GpNode) {
+  down(e: MouseEvent) {
+    this.currentAction.down(this.graph, this.currentEvent, e);
+  }
 
-    if(!node) return;
-
-    const nodeId = node.getId();
-    const obj = this.highlights.get(nodeId);
-
-    const element = this.graphView.getInstance(nodeId);
-    element.removeClass('hover');
-
-
-    if(!obj && obj.timer) return;
-
-    obj.view.addClass('gpFade');
-    obj.timer = setTimeout(() => {
-      const obj = this.highlights.get(nodeId);
-      if(!obj) return;
-      this.highlights.delete(nodeId);
-      obj.view.remove();
-    },500);
+  getCurrentAction() : NodeAction {
+    return this.currentAction;
   }
 }

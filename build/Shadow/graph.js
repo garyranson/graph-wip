@@ -6,7 +6,7 @@ class GpGraphImpl {
     constructor() {
         this.id = 0;
         this.id = 0;
-        this.rootNode = new parent_node_1.default(this, "rootNode", 0, 0, 2000, 2000);
+        this.rootNode = new parent_node_1.default(this, "$node-root", 0, 0, 2000, 2000);
     }
     getRoot() {
         return this.rootNode;

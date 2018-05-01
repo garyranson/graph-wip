@@ -2,29 +2,40 @@ import {DragHandler, DragHandlerData, GpGraphView, GpNode, GpNodeView, GraphGest
 import CellFinder from "./cell-finder";
 
 const emptyGestureEvent : GraphGestureEvent = Object.freeze({
-  instance: null,
-  context: null,
+  nodeView: null,
+  node: null,
   nodeId: null,
   action: null,
   data: null
 });
 
 export default abstract class DragHandlerBase implements DragHandler {
-  readonly graph: GpGraphView;
-  readonly state: GpNodeView;
-  readonly cell: GpNode;
-  readonly cellId: string;
-  readonly finder: (node: Element) => GraphGestureEvent;
+  private readonly sourceNodeView: GpNodeView;
+  private readonly sourceNode: GpNode;
+  private readonly finder: (node: Element) => GraphGestureEvent;
 
-  currentEvent: GraphGestureEvent = emptyGestureEvent;
+  private currentEvent: GraphGestureEvent;
 
-  constructor(graph: GpGraphView, data: GraphGestureEvent) {
+  constructor(private graph: GpGraphView, private data: GraphGestureEvent) {
     this.finder = CellFinder(graph, emptyGestureEvent);
-    this.graph = graph;
-    this.state = data.instance;
-    this.cell = data.context;
-    this.cellId = data.nodeId;
-    this.currentEvent = data;
+    this.sourceNodeView = data.nodeView;
+    this.sourceNode = data.node;
+  }
+
+  getGraphView() : GpGraphView {
+    return this.graph;
+  }
+
+  getGestureEvent() : GraphGestureEvent {
+    return this.data;
+  }
+
+  getSourceNodeView() : GpNodeView {
+    return this.sourceNodeView;
+  }
+
+  getSourceNode() : GpNode {
+    return this.sourceNode;
   }
 
   init(data: DragHandlerData) {
@@ -33,27 +44,18 @@ export default abstract class DragHandlerBase implements DragHandler {
   start(e: MouseEvent, data: DragHandlerData) {
   }
 
-  move(e: MouseEvent) {
-    console.log(`drag:${e.clientX}:${e.clientY}`);
+  move(dx: number, dy: number, e: MouseEvent) {
   }
 
-  drop(e: MouseEvent) {
-    console.log(`drop:${e.clientX}:${e.clientY}`);
+  drop(dx: number, dy: number, e: MouseEvent) {
   }
 
   targetChange(curr: GraphGestureEvent, prev: GraphGestureEvent) {
   }
 
-  getState() : GpNodeView {
-    return this.state;
-    //return this.currentEvent.cellState;
-  }
-
   over(e: MouseEvent) {
-    console.log(e.relatedTarget);
     const currentEvent = this.finder(e.relatedTarget as Element);
     if (currentEvent != this.currentEvent) {
-      console.log('Drag element changed', currentEvent);
       const prev = this.currentEvent;
       this.currentEvent = currentEvent;
       this.targetChange(currentEvent, prev);

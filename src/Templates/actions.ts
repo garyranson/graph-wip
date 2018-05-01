@@ -46,6 +46,30 @@ function textFactory(o:any) {
     el.textContent=gp.getId().toString();
   };
 }
+function pointFactory(o:any) {
+  return formatLibrary[o.key]||formatInvalid;
+}
+
+function formatInvalid(el: SVGElement, gp: GpNode): void {
+  el.textContent = `???`;
+}
+
+
+
+const formatLibrary  = {
+  point: (el: SVGElement, gp: GpNode): void => {
+    el.textContent = `[${gp.x},${gp.y}]`;
+  },
+  size: (el: SVGElement, gp: GpNode): void => {
+    el.textContent = `[${gp.width},${gp.height}]`;
+  }
+
+}
+
+
+
+
+
 function boundsFactory(o:any) {
   return (el: SVGElement, gp: GpNode): void => {
     el.setAttribute("height", <any>(gp.height));
@@ -101,6 +125,12 @@ function splitParse(s: string) : any {
   };
 }
 
+function attributeParse(s: string) : any {
+  return {
+    key: s
+  };
+}
+
 
 function xRatioFactory(o: any) {
   const ratio = o.v1;
@@ -123,7 +153,6 @@ function xyRatioFactory(o: any) {
   const yratio = o.values[1]||0;
   const xoffset = o.values[2]||0;
   const yoffset = o.values[3]||0;
-  console.log('creating:',o.values);
 
   return (el: SVGElement, gp: GpNode): void => {
     el.setAttribute("x", <any>((gp.width  * xratio) + xoffset));
@@ -131,11 +160,21 @@ function xyRatioFactory(o: any) {
   };
 }
 
+function cxyRatioFactory(o: any) {
+  const xratio = o.values[0]||0;
+  const yratio = o.values[1]||0;
+
+  return (el: SVGElement, gp: GpNode): void => {
+    el.setAttribute("cx", <any>(gp.width  * xratio));
+    el.setAttribute("cy", <any>(gp.height * yratio));
+  };
+}
 
 
 const bindMap = {
   'data-text-bind': bindSingleton(textFactory),
   'data-text-eval': bindCache(textExprFactory, expressionParse),
+  'data-text-template': bindCache(pointFactory, attributeParse),
   'data-position-bind': bindSingleton(positionFactory),
   'data-bounds-bind': bindSingleton(boundsFactory),
   'data-height-bind': bindCache(heightFactory, simpleParse),
@@ -145,6 +184,7 @@ const bindMap = {
   'data-x-ratio': bindCache(xRatioFactory,twoParse),
   'data-y-ratio': bindCache(yRatioFactory,twoParse),
   'data-xy-ratio': bindCache(xyRatioFactory,splitParse),
+  'data-cxy-ratio': bindCache(cxyRatioFactory,splitParse),
 };
 
 

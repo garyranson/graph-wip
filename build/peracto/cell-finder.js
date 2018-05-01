@@ -11,11 +11,11 @@ function CellFinder(graphView, emptyGestureEvent) {
         if (element == targetElement)
             return currentNodeEvent;
         targetElement = element;
-        while (element && element != rootElement) {
+        while (element) {
             if (element == matchedElement) {
                 return currentNodeEvent;
             }
-            let nodeId = element.getAttribute("pxnode");
+            let nodeId = element == rootElement ? '0' : element.getAttribute("pxnode");
             if (nodeId) {
                 matchedElement = element;
                 if (targetNodeId != nodeId) {
@@ -23,9 +23,9 @@ function CellFinder(graphView, emptyGestureEvent) {
                     targetNodeId = nodeId;
                 }
                 currentNodeEvent = {
-                    instance: targetNodeView,
+                    nodeView: targetNodeView,
                     nodeId: nodeId,
-                    context: targetNodeView ? targetNodeView.getNode() : null,
+                    node: targetNodeView ? targetNodeView.getNode() : null,
                     action: element.getAttribute("pxaction"),
                     data: element.getAttribute("pxdata")
                 };

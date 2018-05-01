@@ -2,6 +2,7 @@
 
 import Size from "./Utils/size";
 import Point from "./Utils/Point";
+import GpNodeSelectionHandler from "./peracto/node-selection-handler";
 
 export default interface ICloneable {
   clone() : any;
@@ -15,6 +16,9 @@ export interface GpNode {
   template: string;
 
   getId(): number;
+
+  canSelect() : boolean;
+
   setParent(value: GpParentNode) : void;
   getParent(): GpParentNode;getBounds();
   getSize(): Size;
@@ -27,6 +31,7 @@ export interface GpNode {
   getChildren(): GpNode[];
   removeChild(child: GpNode): void;
   appendChild(child: GpNode): void;
+  createShadow() : GpNode;
 }
 
 export interface GpParentNode extends GpNode {
@@ -69,7 +74,13 @@ export interface GpGraphView {
 
   initialize(layers: GpParentNode[]): void;
 
-  appendNodeView(view: GpNodeView): void;
+  appendNodeView(view: GpNodeView): GpNodeView;
+
+  getNodeView(element: Element): GpNodeView;
+
+  getContainedNodes(x: number, y: number, width: number, height: number): GpNodeView[];
+
+  getSelectionManager(): GpNodeSelectionHandler;
 }
 
 export interface GpNodeView {
@@ -83,9 +94,11 @@ export interface GpNodeView {
 
   refresh(): void;
 
-  addClass(name: string);
-  removeClass(name: string);
+  addClass(name: string): GpNodeView;
 
+  removeClass(name: string): GpNodeView;
+
+  setAttribute(name: string, value: any): GpNodeView;
 }
 
 
@@ -94,8 +107,8 @@ export interface GpNodeTemplate {
 }
 
 export interface GraphGestureEvent {
-  instance: GpNodeView,
-  context: GpNode,
+  nodeView: GpNodeView,
+  node: GpNode,
   nodeId: string,
   action: string,
   data: string
@@ -113,18 +126,48 @@ export interface DragHandlerData {
 
 
 export interface DragHandler {
-  init(data: DragHandlerData):void;
-  start(e: MouseEvent, data: DragHandlerData) : void;
-  move(e: MouseEvent): void;
-  drop(e: MouseEvent) : void;
+  init(data: DragHandlerData): void;
+
+  start(e: MouseEvent, data: DragHandlerData): void;
+
+  move(dx: number, dy: number, e: MouseEvent): void;
+
+  drop(dx: number, dy: number, e: MouseEvent): void;
+
   targetChange(curr: GraphGestureEvent, prev: GraphGestureEvent);
-  getState() : GpNodeView;
+
   over(e: MouseEvent): void;
+
   cancel(): void;
+
+  getGraphView(): GpGraphView;
+
+  getSourceNodeView(): GpNodeView;
+
+  getSourceNode(): GpNode;
 }
 
 
 export interface HoverHandler {
   canCancel(e: MouseEvent): boolean;
   cancel(e: MouseEvent): void;
+}
+
+
+export interface NodeAction {
+  canClick(): boolean;
+
+  canDrag(): boolean;
+
+  getDragTolerance(): number;
+
+  startDrag(): void;
+
+  createDragHandler(graph: GpGraphView, data: GraphGestureEvent, evt: Event): DragHandler;
+
+  tap(graphView: GpGraphView, clickCount: number, ge: GraphGestureEvent,evt: MouseEvent): void;
+
+  down(graphView: GpGraphView, ge: GraphGestureEvent, evt: MouseEvent): void;
+
+
 }

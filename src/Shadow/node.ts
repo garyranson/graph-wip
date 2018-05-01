@@ -35,6 +35,10 @@ export default class GpNodeImpl implements GpNode {
     return this._objectId;
   }
 
+  canSelect() : boolean {
+    return this._objectId!=0;
+  }
+
   setParent(value: GpParentNode) {
     if (this._parent === value) {
       return;
@@ -114,5 +118,12 @@ export default class GpNodeImpl implements GpNode {
 
   appendChild(child: GpNode): void {
     throw "not implemented";
+  }
+
+  createShadow() : GpNode {
+    function shadow() {
+    }
+    shadow.prototype = this;
+    return new shadow() as GpNode;
   }
 }

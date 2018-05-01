@@ -1,23 +1,29 @@
+///<reference path="peracto/gesture-handler.ts"/>
 import DomGestureHandler from "./peracto/dom-gesture-handler";
 import GestureHandler from "./peracto/gesture-handler";
 import {GpNode} from "./types";
 import GpGraphImpl from "./Shadow/graph";
 import GpGraphViewImpl from "./Shadow/graph-view";
+import NodeHighlighter from "./peracto/node-highlighter";
 
-export default function(container: Element) : void {
+export default function (container: Element): void {
 
   const doc = GpGraphImpl.create();
   const view = new GpGraphViewImpl(container as SVGSVGElement);
 
   doc.bindView(view);
 
-  DomGestureHandler(container, new GestureHandler(view));
+  const highlighter = new NodeHighlighter(view);
+  const handler = new GestureHandler(view);
+  handler.onOver.add(highlighter.action.bind(highlighter));
+
+  DomGestureHandler(container, handler);
 
   // const rootNode = doc.createContainerObject("rootNode", 0, 0, 3000, 1000);
   const root = doc.getRoot();
   const objset: GpNode[] = [];
 
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 10; i++) {
     const x = Math.round(Math.random() * 1500);
     const y = Math.round(Math.random() * 1200);
     const r = Math.round(Math.random() * 5) * 10;
@@ -35,9 +41,10 @@ export default function(container: Element) : void {
     for (const o of objset) {
       const x = Math.random() * 2500;
       const y = Math.random() * 1200;
+      highlighter.action(null);
       o.setLocation(x, y);
       o.setSize((s * 8) + 20, (s * 8) + 20);
     }
-  }, 500000);
+  }, 300000);
 }
 

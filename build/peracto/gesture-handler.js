@@ -1,121 +1,59 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const cell_finder_1 = require("./cell-finder");
-const template_library_1 = require("../Templates/template-library");
-//import GpNodeResizeHandler from "./node-resizer-handler";
+const event_1 = require("./event");
+const node_action_library_1 = require("../node-action/node-action-library");
 const emptyGestureEvent = Object.freeze({
-    instance: null,
-    context: null,
+    nodeView: null,
+    node: null,
     nodeId: null,
     action: null,
     data: null
 });
-class CellMoverHub {
-    canClick() {
-        return true;
-    }
-    canDrag() {
-        return true;
-    }
-    getDragTolerance() {
-        return 0;
-    }
-    startDrag() {
-    }
-    createDragHandler(evt) {
-        return null; //new DragHandler();
-    }
-    tap(e, x) {
-        console.log(`Click fired ${x.tapCount} times`);
-    }
-}
-const actionCache = new Map([
-    ["mover", new CellMoverHub()]
-]);
 class GestureHandler {
     constructor(graph) {
-        this.currentEvent = emptyGestureEvent;
         this.graph = graph;
+        this.currentEvent = emptyGestureEvent;
+        this.currentAction = node_action_library_1.default.get('mover');
+        this.onOver = new event_1.default();
         this.finder = cell_finder_1.default(graph, emptyGestureEvent);
-        this.highlighter = new Highlighter(graph);
     }
-    getCurrentAction() {
-        return actionCache.get("mover");
-    }
-    over(evt) {
-        const currentEvent = this.finder(evt.relatedTarget);
+    over(element) {
+        const currentEvent = this.finder(element);
         if (currentEvent != this.currentEvent) {
-            console.log(`Something has changed:${currentEvent.nodeId}:${currentEvent.action}:${currentEvent.data}`);
             const previousEvent = this.currentEvent;
-            if (previousEvent && previousEvent.context != currentEvent.context) {
-                this.highlighter.off(previousEvent.context);
-                this.highlighter.on(currentEvent.context);
+            console.log('element changes', currentEvent, previousEvent);
+            if (previousEvent && previousEvent.node != currentEvent.node) {
+                console.log('fire');
+                this.onOver.fire({ current: currentEvent, previous: previousEvent });
             }
+            else {
+                console.log('matches???', previousEvent.node, currentEvent.node);
+            }
+            this.currentAction = node_action_library_1.default.get(currentEvent.action || 'canvas');
             this.currentEvent = currentEvent;
         }
-    }
-    getDragTolerance(e) {
-        if (this.currentEvent.action == 'canvas') {
-            return 0;
+        if (!this.currentEvent.action) {
+            console.log(element);
         }
-        return 10;
+        console.log('action:' + this.currentEvent.action);
+        return this.currentAction;
     }
     createDragHandler(e) {
-        if (this.currentEvent.action == 'resizer') {
-            //return new GpNodeResizeHandler(this.graph,this.currentEvent);
-        }
-        return null;
+        this.onOver.fire(null);
+        return this.currentAction.createDragHandler(this.graph, this.currentEvent, e);
     }
-    createHoverHandler(e) {
-        return null;
+    clickHandler(clickCount, e) {
+        if (this.currentAction.canClick()) {
+            this.currentAction.tap(this.graph, clickCount, this.currentEvent, e);
+        }
+    }
+    down(e) {
+        this.currentAction.down(this.graph, this.currentEvent, e);
+    }
+    getCurrentAction() {
+        return this.currentAction;
     }
 }
 exports.default = GestureHandler;
-class Highlighter {
-    constructor(graphView) {
-        this.highlights = new Map();
-        this.graphView = graphView;
-    }
-    on(node) {
-        if (!node)
-            return;
-        const nodeId = node.getId();
-        const obj = this.highlights.get(nodeId);
-        const element = this.graphView.getInstance(nodeId);
-        element.addClass('hover');
-        if (obj) {
-            if (obj.timer) {
-                clearTimeout(obj.timer);
-                obj.timer = 0;
-            }
-            obj.view.removeClass('gpFade');
-        }
-        else {
-            const view = template_library_1.default.createView(node, 'outline');
-            this.graphView.appendNodeView(view);
-            this.highlights.set(nodeId, {
-                view,
-                timer: 0
-            });
-        }
-    }
-    off(node) {
-        if (!node)
-            return;
-        const nodeId = node.getId();
-        const obj = this.highlights.get(nodeId);
-        const element = this.graphView.getInstance(nodeId);
-        element.removeClass('hover');
-        if (!obj && obj.timer)
-            return;
-        obj.view.addClass('gpFade');
-        obj.timer = setTimeout(() => {
-            const obj = this.highlights.get(nodeId);
-            if (!obj)
-                return;
-            this.highlights.delete(nodeId);
-            obj.view.remove();
-        }, 500);
-    }
-}
 //# sourceMappingURL=gesture-handler.js.map

@@ -100,8 +100,8 @@ enabling [Enterprise Mode](https://blogs.msdn.microsoft.com/ie/2014/04/02/stay-u
 
 ## Meta Description
 
-The `description` meta tag provides a short description of the page. 
-In some situations this description is used as a part of the snippet 
+The `description` meta tag provides a short description of the page.
+In some situations this description is used as a part of the snippet
 shown in the search results.
 
 ```html
@@ -122,24 +122,24 @@ HTML5 Boilerplate comes with a simple setup that strikes a good balance for gene
 ```
 
 ## Web App Manifest
-HTML5 Boilerplate includes a simple web app manifest file. 
+HTML5 Boilerplate includes a simple web app manifest file.
 
-The web app manifest is a simple JSON file that allows you to control how your 
+The web app manifest is a simple JSON file that allows you to control how your
 app appears on a device's home screen, what it looks like when it launches
-in that context and what happens when it is launched. This allows for much greater
-control over the UI of a saved site or web app on a mobile device. 
+in that node and what happens when it is launched. This allows for much greater
+control over the UI of a saved site or web app on a mobile device.
 
 It's linked to from the HTML as follows:
 
 ```html
         <link rel="manifest" href="site.webmanifest">
 ```
-Our [site.webmanifest](https://github.com/h5bp/html5-boilerplate/blob/master/src/site.webmanifest) contains a very skeletal "app" definition, just to show the basic usage. 
+Our [site.webmanifest](https://github.com/h5bp/html5-boilerplate/blob/master/src/site.webmanifest) contains a very skeletal "app" definition, just to show the basic usage.
 You should fill this file out with [more information about your site or application](https://developer.mozilla.org/en-US/docs/Web/Manifest)
 
 ## Favicons and Touch Icon
 
-The shortcut icons should be put in the rootNode directory of your site. `favicon.ico` 
+The shortcut icons should be put in the rootNode directory of your site. `favicon.ico`
 is automatically picked up by browsers if it's placed in the rootNode.  HTML5
 Boilerplate comes with a default set of icons (include favicon and one Apple
 Touch Icon) that you can use as a baseline to create your own.
@@ -170,7 +170,7 @@ This allows you to target parts of your CSS and JavaScript based on the
 features supported by a browser.
 
 Starting with version 3 Modernizr can be customized using the [modernizr-config.json](https://github.com/h5bp/html5-boilerplate/blob/master/modernizr-config.json) and the
-[Modernizr command line utility](https://www.npmjs.com/package/modernizr-cli). 
+[Modernizr command line utility](https://www.npmjs.com/package/modernizr-cli).
 
 ## What About Polyfills?
 
@@ -191,8 +191,8 @@ just put it before the other scripts in the bottom of the page:
 
 If you like to just include the polyfills yourself, you could include them in
 `js/plugins.js`. When you have a bunch of polyfills to load in, you could
-also create a `polyfills.js` file in the `js/vendor` directory or include the files 
-individually and combine them using a build tool. Always ensure that the polyfills 
+also create a `polyfills.js` file in the `js/vendor` directory or include the files
+individually and combine them using a build tool. Always ensure that the polyfills
 are all loaded before any other Javascript.
 
 There are some misconceptions about Modernizr and polyfills. It's important

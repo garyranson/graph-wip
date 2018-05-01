@@ -16,7 +16,6 @@ class GpTemplateImpl {
         const root = this.template.cloneNode(true);
         const nodeId = node.getId();
         root.setAttribute('pxnode', nodeId);
-        root.classList.add('gpobject');
         const actions = root.querySelectorAll('[pxaction]');
         for (let i = 0; i < actions.length; i++) {
             actions.item(i).setAttribute('pxnode', nodeId);

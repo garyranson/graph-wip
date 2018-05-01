@@ -2,32 +2,38 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 class GpNodeViewImpl {
     constructor(root, exec, context) {
-        this.root = root;
+        this.element = root;
         this.exec = exec;
-        this.context = context;
+        this.node = context;
     }
     appendChild(child) {
         if (child) {
-            this.root.appendChild(child.getRoot());
+            this.element.appendChild(child.getRoot());
         }
     }
     remove() {
-        this.root.remove();
+        this.element.remove();
     }
     getRoot() {
-        return this.root;
+        return this.element;
     }
     getNode() {
-        return this.context;
+        return this.node;
     }
     refresh() {
-        this.exec(this.context);
+        this.exec(this.node);
     }
     addClass(name) {
-        this.root.classList.add(name);
+        this.element.classList.add(name);
+        return this;
     }
     removeClass(name) {
-        this.root.classList.remove(name);
+        this.element.classList.remove(name);
+        return this;
+    }
+    setAttribute(name, value) {
+        this.element.setAttribute(name, value);
+        return this;
     }
 }
 exports.default = GpNodeViewImpl;

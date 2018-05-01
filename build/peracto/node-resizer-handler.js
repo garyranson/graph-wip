@@ -1,43 +1,35 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const svg_1 = require("../Utils/svg");
-class GpNodeResizeHandler {
-    constructor(graph, data) {
-        //    this.index = parseInt(data.data);
-        this.graph = graph;
-        this.data = data;
-    }
+const drag_handler_base_1 = require("../peracto/drag-handler-base");
+const template_library_1 = require("../Templates/template-library");
+class ResizerDragHandler extends drag_handler_base_1.default {
     init(data) {
+        this.shadow = createShadow(this.getSourceNode());
+        this.dragObject = this.getGraphView().appendNodeView(template_library_1.default
+            .createView(this.shadow, 'dragoutline')
+            .setAttribute('transform', `translate(0,0)`));
     }
-    start(e, data) {
-        //this.inTolerance = true;
-        this.childOffsetX = 0;
-        this.childOffsetY = 0;
-        this.startX = data.pointerX;
-        this.startY = data.pointerY;
-        const node = this.data.context;
-        this.shadowNode = svg_1.createSvgElement('rect', {
-            x: node.x,
-            y: node.y,
-            width: node.width,
-            height: node.height,
-            style: 'stroke-width:4;fill:none,stroke:black',
-        });
-        this.graph.getContainer().appendChild(this.shadowNode);
+    move(dx, dy, e) {
+        this.dragObject.setAttribute('transform', `translate(${dx},${dy})`);
     }
-    move(e) {
+    drop(dx, dy, e) {
+        const node = this.getSourceNode();
+        setTimeout(() => {
+            node.setLocation(node.x + dx, node.y + dy);
+        }, 10);
     }
     cancel() {
-    }
-    drop(e) {
-    }
-    getState() {
-        return undefined;
-    }
-    over(e) {
-    }
-    targetChange(curr, prev) {
+        if (this.dragObject) {
+            this.dragObject.remove();
+            this.dragObject = null;
+        }
     }
 }
-exports.default = GpNodeResizeHandler;
+exports.default = ResizerDragHandler;
+function createShadow(node) {
+    function shadow() {
+    }
+    shadow.prototype = node;
+    return new shadow();
+}
 //# sourceMappingURL=node-resizer-handler.js.map
