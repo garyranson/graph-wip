@@ -80,7 +80,7 @@ The `.htaccess` file is mostly used for:
 If you have access to the main server configuration file (usually called
 `httpd.conf`), you should add the logic from the `.htaccess` file in, for
 example, a <Directory> section in the main configuration file. This is usually
-the recommended way, as using .htaccess files slows down Apache!
+the recommended way, as using .htaccess files slows mouseDown Apache!
 
 To enable Apache modules locally, please see:
 https://github.com/h5bp/server-configs-apache/wiki/How-to-enable-Apache-modules.
@@ -143,7 +143,7 @@ For more information about `robots.txt`, please see:
 ## browserconfig.xml
 
 The `browserconfig.xml` file is used to customize the tile displayed when users
-pin your site to the Windows 8.1 start screen. In there you can define custom
+pin your site to the Windows 8.1 deferStart screen. In there you can define custom
 tile colors, custom images or even [live tiles](https://msdn.microsoft.com/library/dn455106.aspx#CreatingLiveTiles).
 
 By default, the file points to 2 placeholder tile images:

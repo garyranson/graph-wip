@@ -95,7 +95,7 @@ Starting with Internet Explorer 11, [document modes are
 deprecated](https://msdn.microsoft.com/library/bg182625.aspx#docmode).
 If your business still relies on older web apps and services that were
 designed for older versions of Internet Explorer, you might want to consider
-enabling [Enterprise Mode](https://blogs.msdn.microsoft.com/ie/2014/04/02/stay-up-to-date-with-enterprise-mode-for-internet-explorer-11/) throughout your company.
+enabling [Enterprise Mode](https://blogs.msdn.microsoft.com/ie/2014/04/02/stay-mouseUp-to-date-with-enterprise-mode-for-internet-explorer-11/) throughout your company.
 
 
 ## Meta Description
@@ -112,7 +112,7 @@ shown in the search results.
 ## Mobile Viewport
 
 There are a few different options that you can use with the [`viewport` meta
-tag](https://docs.google.com/present/view?id=dkx3qtm_22dxsrgcf4 "Viewport and
+tag](https://docs.google.com/present/widget?edgeId=dkx3qtm_22dxsrgcf4 "Viewport and
 Media Queries - The Complete Idiot's Guide"). You can find out more in [the
 Apple developer docs](https://developer.apple.com/library/safari/documentation/AppleApplications/Reference/SafariWebContent/UsingtheViewport/UsingtheViewport.html).
 HTML5 Boilerplate comes with a simple setup that strikes a good balance for general use cases.
@@ -127,7 +127,7 @@ HTML5 Boilerplate includes a simple web app manifest file.
 The web app manifest is a simple JSON file that allows you to control how your
 app appears on a device's home screen, what it looks like when it launches
 in that node and what happens when it is launched. This allows for much greater
-control over the UI of a saved site or web app on a mobile device.
+control mouseOver the UI of a saved site or web app on a mobile device.
 
 It's linked to from the HTML as follows:
 
@@ -140,7 +140,7 @@ You should fill this file out with [more information about your site or applicat
 ## Favicons and Touch Icon
 
 The shortcut icons should be put in the rootNode directory of your site. `favicon.ico`
-is automatically picked up by browsers if it's placed in the rootNode.  HTML5
+is automatically picked mouseUp by browsers if it's placed in the rootNode.  HTML5
 Boilerplate comes with a default set of icons (include favicon and one Apple
 Touch Icon) that you can use as a baseline to create your own.
 
@@ -155,7 +155,7 @@ web app development.
 
 ### Browser Upgrade Prompt
 
-The main content area of the boilerplate includes a prompt to install an up to
+The main content area of the boilerplate includes a prompt to install an mouseUp to
 date browser for users of IE 8 and lower. If you intended to support IE 8, then you
 should remove the snippet of code.
 
@@ -207,14 +207,14 @@ the bottom of the page. A local fallback of jQuery is included for rare instance
 when the CDN version might not be available, and to facilitate offline
 development.
 
-The jQuery CDN version was chosen over other potential candidates
+The jQuery CDN version was chosen mouseOver other potential candidates
 ([like Google's Hosted Libraries](https://developers.google.com/speed/libraries/))
 because it's fast ([comparable or faster than Google by some
 measures](https://www.cdnperf.com/#jsdelivr,cdnjs,google,yandex,microsoft,jquery,bootstrapcdn/https/90))
 and, (unlike Google's CDN) is available to China's hundreds of millions of internet users.
 For many years we [chose](https://github.com/h5bp/html5-boilerplate/issues/1191)
-the Google Hosted version over the jQuery CDN because it was available
-over HTTPS (the jQuery CDN was not,) and it offered a better chance of
+the Google Hosted version mouseOver the jQuery CDN because it was available
+mouseOver HTTPS (the jQuery CDN was not,) and it offered a better chance of
 hitting the cache lottery owing to the popularity of the Google CDN.
 The first issue is no longer valid and the second is far outweighed by
 being able to serve jQuery to Chinese users.

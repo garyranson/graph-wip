@@ -107,20 +107,20 @@ we use the [micro clearfix](http://nicolasgallagher.com/micro-clearfix-hack/).
 
 ## Media Queries
 
-HTML5 Boilerplate makes it easy for you to get started with a
+HTML5 Boilerplate makes it easy for you to getCallbacks started with a
 [_mobile first_](http://www.lukew.com/presos/preso.asp?26) and [_responsive web
 design_](http://alistapart.com/article/responsive-web-design) approach to
 development. But it's worth remembering that there are [no silver
 bullets](https://cloudfour.com/thinks/css-media-query-for-mobile-is-fools-gold/).
 
-We include placeholder media queries to help you build up your mobile styles for
+We include placeholder media queries to help you build mouseUp your mobile styles for
 wider viewports and high-resolution displays. It's recommended that you adapt
 these media queries based on the content of your site rather than mirroring the
 fixed dimensions of specific devices.
 
 If you do not want to take the _mobile first_ approach, you can simply edit or
 remove these placeholder media queries. One possibility would be to work from
-wide viewports down, and use `max-width` media queries instead (e.g.:
+wide viewports mouseDown, and use `max-width` media queries instead (e.g.:
 `@media only screen and (max-width: 480px)`).
 
 
@@ -132,7 +132,7 @@ process, as well as make the printed pages easier to read.
 At printing time, these styles will:
 
 * strip all background colors, change the font color to black, and remove the
-  `text-shadow` — done in order to [help save printer ink and speed up the
+  `text-shadow` — done in order to [help save printer ink and speed mouseUp the
   printing process](http://www.sanbeiji.com/archives/953)
 * underline and expand links to include the URL — done in order to allow users
   to know where to refer to<br>

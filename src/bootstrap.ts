@@ -1,50 +1,101 @@
-///<reference path="peracto/gesture-handler.ts"/>
-import DomGestureHandler from "./peracto/dom-gesture-handler";
-import GestureHandler from "./peracto/gesture-handler";
-import {GpNode} from "./types";
-import GpGraphImpl from "./Shadow/graph";
-import GpGraphViewImpl from "./Shadow/graph-view";
-import NodeHighlighter from "./peracto/node-highlighter";
+import {defineModule, Injector} from "core/injector";
 
-export default function (container: Element): void {
+import {DragHandlersModule} from "drag-handlers/drag-handlers";
+import {DelegateCallbackModule} from "modules/delegate-callback-initialiser";
+import {WidgetLocatorModule} from "modules/widget-locator";
+import {AppBus, AppBusModule} from "bus/app-bus";
 
-  const doc = GpGraphImpl.create();
-  const view = new GpGraphViewImpl(container as SVGSVGElement);
+import {NodeActionFeatureModule} from "features/widget-action-feature";
+import {MouseFeatureModule} from "mouse-handlers/mouse-feature";
+import {MouseDragFeatureModule} from "mouse-handlers/mouse-drag-feature";
+import {WidgetHighlightFeatureModule} from "features/widget-highlight-feature";
+import {DiagramContextMenuModule} from "features/diagram-context-menu-feature";
+import {DiagramResizeModule} from "features/diagram-resize";
+import {MouseDragDeferredFeatureModule} from "mouse-handlers/mouse-drag-deferred-feature";
 
-  doc.bindView(view);
+import {WidgetTemplateLibraryModule} from "template/widget-template-library";
 
-  const highlighter = new NodeHighlighter(view);
-  const handler = new GestureHandler(view);
-  handler.onOver.add(highlighter.action.bind(highlighter));
+import {MoverDragHandlerModule} from "./drag-handlers/mover-drag-handler";
+import {ResizerDragHandlerModule} from "./drag-handlers/resizer-drag-handler";
+import {WidgetSelectionFeatureModule} from "./features/widget-selection-feature";
+import {LassoDragHandlerModule} from "./drag-handlers/lasso-drag-handler";
 
-  DomGestureHandler(container, handler);
+import {DemoGraphBinderModule} from "./demo-graph-binder";
+import {ModelControllerModule} from "modules/model-controller";
+import {WidgetCanvasModule} from "modules/widget-canvas";
+import {DemoTemplatesModule} from "./demo-templates";
+import {ShadowWidgetFactoryModule} from "modules/shadow-widget-factory";
+import {ConnectorDragHandlerModule} from "./drag-handlers/connector-drag-handler";
+import {ContainerModule} from "modules/container-Initialiser";
+import {SvgHelpersModule} from "modules/svg-helpers";
+import {StoreModule} from "modules/store";
+import {WidgetActionLibraryModule} from "template/widget-action-library";
+import {WidgetTemplateServiceModule} from "template/widget-template";
+import {ModelViewBridgeModule} from "features/model-view-bridge";
+import {IdGeneratorModule} from "modules/id-generator";
 
-  // const rootNode = doc.createContainerObject("rootNode", 0, 0, 3000, 1000);
-  const root = doc.getRoot();
-  const objset: GpNode[] = [];
-
-  for (let i = 0; i < 10; i++) {
-    const x = Math.round(Math.random() * 1500);
-    const y = Math.round(Math.random() * 1200);
-    const r = Math.round(Math.random() * 5) * 10;
-    const q = Math.round(Math.random() * 5) * 10;
-    const box1 = doc.createObject("default", x, y, 150 + r, 100 + q);
-    root.appendChild(box1);
-    objset.push(box1);
+export function bootstrap(container: any): void {
+  try {
+    const parent = Injector(
+      WidgetTemplateLibraryModule,
+      WidgetTemplateServiceModule,
+      WidgetActionLibraryModule,
+      IdGeneratorModule
+    ).init(
+      DemoTemplatesModule
+    );
+    bootstrap2(parent, container);
   }
-
-  let s = 10;
-  setInterval(() => {
-    //const s = 1 + Math.round(Math.random() * 3);
-    s = ((s + 1) % 25);
-    s = 10;
-    for (const o of objset) {
-      const x = Math.random() * 2500;
-      const y = Math.random() * 1200;
-      highlighter.action(null);
-      o.setLocation(x, y);
-      o.setSize((s * 8) + 20, (s * 8) + 20);
-    }
-  }, 300000);
+  catch (e) {
+    console.trace(e);
+  }
 }
 
+function bootstrap2(injector: Injector, container: any): void {
+
+  const app = injector.define(
+    StoreModule,
+    defineModule(
+      ContainerModule,
+      container
+    ),
+    ModelControllerModule,
+    WidgetCanvasModule,
+    AppBusModule,
+    ShadowWidgetFactoryModule,
+    SvgHelpersModule,
+    WidgetLocatorModule,
+    defineModule(
+      DragHandlersModule,
+      [
+        LassoDragHandlerModule,
+        MoverDragHandlerModule,
+        ResizerDragHandlerModule,
+        ConnectorDragHandlerModule
+      ]
+    ),
+    defineModule(
+      DelegateCallbackModule,
+      callback
+    )
+  ).init(
+    ModelViewBridgeModule,
+    WidgetSelectionFeatureModule,
+    MouseFeatureModule,
+    NodeActionFeatureModule,
+    MouseDragFeatureModule,
+    MouseDragDeferredFeatureModule,
+    WidgetHighlightFeatureModule,
+    DiagramContextMenuModule,
+    DiagramResizeModule,
+    DemoGraphBinderModule
+  );
+
+  const bus = app.get<AppBus>('AppBus');
+
+  bus.diagramInit.fire({container: app.get('Container')});
+}
+
+function callback(e) {
+  console.trace(`**EVENT FAILURE: ${e}`)
+}

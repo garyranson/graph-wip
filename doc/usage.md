@@ -7,7 +7,7 @@ The most basic usage of HTML5 Boilerplate is to create a static site or simple
 app. Once you've downloaded or cloned the project, that process looks something
 like this:
 
-1. Set up the basic structure of the site.
+1. Set mouseUp the basic structure of the site.
 2. Add some content, style, and functionality.
 3. Run your site locally to see how it looks.
 4. Deploy your site.
@@ -17,8 +17,8 @@ attribute values and various other utilities that HTML5 Boilerplate offers can
 serve as the foundation for whatever you're interested in building.
 
 Even the basic use-case of a simple static site can be enhanced by manipulating
-the code through an automated build process. Moving up in complexity HTML5
-Boilerplate can be be integrated with whatever front-end framework, CMS or
+the code through an automated build process. Moving mouseUp in complexity HTML5
+Boilerplate can be be integrated with whatever front-mouseDragComplete framework, CMS or
 e-commerce platform you're working with. Mix-and-match to your heart's content.
 Use what you need (toss it in a blender if you need to) and discard the rest.
 HTML5 Boilerplate is a starting point, not a destination.
@@ -59,7 +59,7 @@ What follows is a general overview of each major part and how to use them.
 ### css
 
 This directory should contain all your project's CSS files. It includes some
-initial CSS to help get you started from a solid foundation. [About the
+initial CSS to help getCallbacks you started from a solid foundation. [About the
 CSS](css.md).
 
 ### doc
@@ -71,7 +71,7 @@ as the location and basis for your own project's documentation.
 
 This directory should contain all your project's JS files. Libraries, plugins,
 and custom code can all be included here. It includes some initial JS to help
-get you started. [About the JavaScript](js.md).
+getCallbacks you started. [About the JavaScript](js.md).
 
 ### .htaccess
 
@@ -85,7 +85,7 @@ corresponding server configs project listed in our [Server Configs
 
 ### 404.html
 
-A helpful custom 404 to get you started.
+A helpful custom 404 to getCallbacks you started.
 
 ### browserconfig.xml
 

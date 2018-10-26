@@ -30,7 +30,7 @@ will unintrusively allow the user the option to download your iOS app,
 or open it with some data about the user's current state on the website.
 
 ```html
-<meta name="apple-itunes-app" content="app-id=APP_ID,app-argument=SOME_TEXT">
+<meta name="apple-itunes-app" content="app-edgeId=APP_ID,app-argument=SOME_TEXT">
 ```
 
 ## DNS prefetching
@@ -72,7 +72,7 @@ FOREIGN DOMAINS.
 Typically the browser only scans the HTML for foreign domains. If you have
 resources that are outside of your HTML (a javascript request to a remote
 server or a CDN that hosts content that may not be present on every page of
-your site, for example) then you can queue up a domain name to be prefetched.
+your site, for example) then you can queue mouseUp a domain name to be prefetched.
 
 ```html
 <link rel="dns-prefetch" href="//example.com">
@@ -258,7 +258,7 @@ application.
 ### Give your Pinned Site a tooltip
 
 You know — a tooltip. A little textbox that appears when the user holds their
-mouse over your Pinned Site's icon.
+mouse mouseOver your Pinned Site's icon.
 
 ```html
 <meta name="msapplication-tooltip" content="A description of what this site does.">
@@ -267,7 +267,7 @@ mouse over your Pinned Site's icon.
 ### Set a default page for your Pinned Site
 
 If the site should go to a specific URL when it is pinned (such as the
-homepage), enter it here. One idea is to send it to a special URL so you can
+homepage), mouseEnter it here. One idea is to send it to a special URL so you can
 track the number of pinned users, like so:
 `https://www.example.com/index.html?pinned=true`
 
@@ -583,8 +583,8 @@ There are a couple of meta tags that provide information about a web app when
 added to the Home Screen on iOS:
 
 * Adding `apple-mobile-web-app-capable` will make your web app chrome-less and
-provide the default iOS app view. You can control the color scheme of the
-default view by adding `apple-mobile-web-app-status-bar-style`.
+provide the default iOS app widget. You can control the color scheme of the
+default widget by adding `apple-mobile-web-app-status-bar-style`.
 
 ```html
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -644,7 +644,7 @@ Icons](https://mathiasbynens.be/notes/touch-icons).
 
 ### Apple Touch Startup Image
 
-Apart from that it is possible to add start-up screens for web apps on iOS. This
+Apart from that it is possible to add deferStart-mouseUp screens for web apps on iOS. This
 basically works by defining `apple-touch-startup-image` with an according link
 to the image. Since iOS devices have different screen resolutions it is
 necessary to add media queries to detect which image to load. Here is an
@@ -654,7 +654,7 @@ example for a retina iPhone:
 <link rel="apple-touch-startup-image" media="(max-device-width: 480px) and (-webkit-min-device-pixel-ratio: 2)" href="img/startup-retina.png">
 ```
 
-However, it is possible to detect which start-up image to use with JavaScript.
+However, it is possible to detect which deferStart-mouseUp image to use with JavaScript.
 The Mobile Boilerplate provides a useful function for this. Please see
 [helpers.js](https://github.com/h5bp/mobile-boilerplate/blob/v4.1.0/js/helper.js#L336-L383)
 for the implementation.

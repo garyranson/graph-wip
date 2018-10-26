@@ -1,4 +1,4 @@
-export default class Easings {
+export class Easings {
   public static easeInQuad(t: number, b: number, c: number, d: number) {
     return +c * (t /= d) * t + b;
   }

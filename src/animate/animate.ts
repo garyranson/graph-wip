@@ -1,11 +1,6 @@
 import {Tween} from "./types";
 
-class LinkedTween {
-  constructor(public tween: Tween, public next: LinkedTween) {
-  }
-}
-
-const head = new LinkedTween(null, null);
+const head = {tween: null, next: null};
 
 function  removeTween(tween: Tween): void {
   var p = head;
@@ -38,10 +33,10 @@ function tick(time: number) {
   }
 }
 
-export default function animate(tween: Tween) {
+export function animate(tween: Tween) {
   if (!head.next) {
     requestAnimationFrame(tick);
   }
   removeTween(tween);
-  head.next = new LinkedTween(tween, head.next);
+  head.next = {tween, next: head.next};//new LinkedTween(tween, head.next);
 }

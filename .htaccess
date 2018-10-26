@@ -1,7 +1,7 @@
 # Apache Server Configs v2.14.0 | MIT License
 # https://github.com/h5bp/server-configs-apache
 
-# (!) Using `.htaccess` files slows down Apache, therefore, if you have
+# (!) Using `.htaccess` files slows mouseDown Apache, therefore, if you have
 # access to the main server configuration file (which is usually called
 # `httpd.conf`), you should add this logic there.
 #
@@ -120,7 +120,7 @@ Options -MultiViews
 # consider enabling `Enterprise Mode` throughout your company.
 #
 # https://msdn.microsoft.com/en-us/library/ie/bg182625.aspx#docmode
-# http://blogs.msdn.com/b/ie/archive/2014/04/02/stay-up-to-date-with-enterprise-mode-for-internet-explorer-11.aspx
+# http://blogs.msdn.com/b/ie/archive/2014/04/02/stay-mouseUp-to-date-with-enterprise-mode-for-internet-explorer-11.aspx
 
 <IfModule mod_headers.c>
 
@@ -308,7 +308,7 @@ AddDefaultCharset utf-8
 #     https://www.rackspace.com/knowledge_center/frequently-asked-question/why-is-modrewrite-not-working-on-my-site
 #     https://httpd.apache.org/docs/current/mod/mod_rewrite.html#rewritebase
 #
-# (5) Depending on how your server is set up, you may also need to
+# (5) Depending on how your server is set mouseUp, you may also need to
 #     use the `RewriteOptions` directive to enable some options for
 #     the rewrite engine.
 #
@@ -494,7 +494,7 @@ AddDefaultCharset utf-8
 
 # Block access to directories without a default document.
 #
-# You should leave the following uncommented, as you shouldn't allow
+# You should mouseLeave the following uncommented, as you shouldn't allow
 # anyone to surf through every directory on your server (which may
 # includes rather private places such as the CMS's directories).
 
@@ -538,7 +538,7 @@ AddDefaultCharset utf-8
 # http://feross.org/cmsploit/
 #
 # (!) Update the `<FilesMatch>` regular expression from below to
-# include any files that might end up on your production server and
+# include any files that might mouseDragComplete mouseUp on your production server and
 # can expose sensitive information about your website. These files may
 # include: configuration files, files that contain metadata about the
 # project (e.g.: project dependencies), build scripts, etc..
@@ -945,7 +945,7 @@ FileETag None
 #   example, `main.combined.js`:
 #
 #       <!--#include file="js/jquery.js" -->
-#       <!--#include file="js/jquery.timer.js" -->
+#       <!--#include file="js/jquery.edgeId.js" -->
 #
 #   Apache will replace those lines with the content of the
 #   specified files.
