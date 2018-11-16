@@ -4,7 +4,10 @@ export interface Module {
   $params?: any[],
   $inject?: any[],
   $item?: string,
-  $payload?: any
+  $payload?: any,
+  $constant?: any,
+  $ftype?:string,
+  $expr?:any
 }
 
 export function defineModule(type: Module, ...args): Module {
@@ -18,7 +21,9 @@ export interface Injector {
 
   get<T>(name: string): T;
 
-  run(fn: (get: <T>(name: string) => T) => void): Injector
+  run(fn: (get: <T>(name: string) => T) => void): Injector,
+
+  map<T>(fn: (m: Module) => T): T[]
 }
 
 export type InjectCreator = <T>(string) => T;
@@ -44,17 +49,26 @@ function InternalInjector(m: Module[], locker: Locker, parent?: { [key: string]:
     run(this: Injector, fn: (get: <T>(name: string) => T) => void): Injector {
       fn.call(this, get);
       return this;
+    },
+    map<T>(fn: (m:Module) => T) : T[] {
+      const a = [];
+      for(let i in modules) {
+        if(!modules.hasOwnProperty(i)) continue;
+        a.push(fn.call(this,modules[i]));
+      }
+      return a;
     }
   }
 
-  function get<T>(type: string): any {
+  function get<T>(this: Injector, type: string): any {
     return type === '$injectCreator'
       ? create
       : type === '$injectGetter'
         ? get
-        : (getters[type] || noop)(type);
+        : type === '$inject'
+          ? this
+          : (getters[type] || noop)(type);
   }
-
 
   function _get<T>(type: string): T {
     return values.hasOwnProperty(type)

@@ -1,0 +1,175 @@
+.pw-canvas {
+  pointer-events: all;
+
+  //override I-beam cursor over text
+  text {
+    cursor: default;
+  }
+
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 12pt;
+}
+
+.pw-container {
+  pointer-events: none;
+
+  &__canvas {
+    fill: yellow;
+    stroke: black;
+    pointer-events: all;
+    opacity: 0.5;
+  }
+
+  &__text {
+  }
+
+}
+
+.pw-select {
+  pointer-events: none;
+  &__canvas {
+    fill: blue;
+    stroke: black;
+    pointer-events: all;
+    opacity: 0.5;
+  }
+
+  &__text {
+  }
+
+  &__icon {
+  }
+}
+
+.pw-default {
+  pointer-events: none;
+  &__canvas {
+    fill: blue;
+    stroke: red;
+    pointer-events: all;
+    opacity: 0.5;
+  }
+
+  &__canvas_fill {
+    fill: green;
+    stroke: black;
+    pointer-events: all;
+    opacity: 0.5;
+  }
+
+  &__text {
+  }
+
+  &__icon {
+    fill: white;
+  }
+
+}
+
+.po-highlight {
+  pointer-events: none;
+  opacity: 1;
+
+  &.px-off {
+    opacity: 0;
+  }
+
+  &__outline {
+    fill: none;
+    stroke: #555555;
+    stroke-opacity: 0.5;
+    stroke-width: 3px;
+    stroke-dasharray: 10;
+  }
+}
+
+.po-resize {
+  pointer-events: none;
+  opacity: 1;
+
+  &.px-off {
+    opacity: 0;
+  }
+
+  &__outline {
+    fill: none;
+    stroke: #555555;
+    stroke-opacity: 0.5;
+    stroke-width: 3px;
+  }
+  &__text {
+  }
+}
+
+.po-drag-drop {
+  pointer-events: none;
+
+  &__outline {
+    fill: none;
+    stroke: darkorange;
+    stroke-opacity: 0.5;
+    stroke-width: 4px;
+  }
+  &__text {
+  }
+}
+
+.po-lasso {
+  pointer-events: none;
+  opacity: 1;
+
+  &.px-off {
+    opacity: 0;
+  }
+
+  &__canvas {
+    fill: blue;
+    opacity: 0.25;
+    stroke: #555555;
+    stroke-opacity: 0.5;
+    stroke-width: 3px;
+  }
+  &__text {
+  }
+}
+
+.po-connector {
+  pointer-events: none;
+
+  &__stroke {
+    stroke: red;
+    fill: none;
+    stroke-width: 3px;
+  }
+  &__text {
+  }
+}
+
+.po-select {
+  pointer-events: none;
+  transition: opacity 250ms ease-in-out;
+  opacity: 1;
+
+  &.px-off {
+    opacity: 0;
+  }
+
+  &__border {
+    stroke: #6c8ebf;
+    stroke-width: 1px;
+    fill: none;
+  }
+
+  &__resize-handle {
+    stroke: white;
+    stroke-width: 1px;
+    fill: #6c8ebf;
+    cursor: grab;
+    pointer-events: all;
+  }
+
+  &__connector {
+    fill: red;
+    pointer-events: all;
+  }
+}

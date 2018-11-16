@@ -9,7 +9,7 @@ export interface WidgetTemplate {
 }
 
 export interface WidgetTemplateService {
-  create(markup: string): WidgetTemplate;
+  create(markup: string | Element): WidgetTemplate;
 }
 
 export const WidgetTemplateServiceModule = {
@@ -18,14 +18,16 @@ export const WidgetTemplateServiceModule = {
   $type: WidgetTemplateService
 }
 
+const emptyArray = Object.freeze([]);
+
 function WidgetTemplateService(actions: WidgetActionLibrary): WidgetTemplateService {
 
   return {
     create
   }
 
-  function create(svg: string): WidgetTemplate {
-    const root = parseSvg(svg);
+  function create(svg: string | Element): WidgetTemplate {
+    const root = typeof svg === 'string' ? parseSvg(svg) : parseEl(svg);
     const instructions = compileActions(root);
     const template = finalizeElement(root);
     const factory = getFactory(instructions)(instructions);
@@ -60,47 +62,61 @@ function WidgetTemplateService(actions: WidgetActionLibrary): WidgetTemplateServ
   }
 
   function compileActions(root: Element): WidgetTemplateAction[] {
-    return mapElementNodes(root, (el) => {
-      const attrs = mapElementAttrs(el, (attr) => attr.name.startsWith('data-') && actions.has(attr.name) ? {
-        name: attr.name,
-        factory: actions.get(attr.name),
-        value: attr.value
-      } : null);
-      return attrs && attrs.length ? {el, attrs} : null;
+    return mapElements(root, (el) => {
+      return _convert(
+        el,
+        getBindAttributes(el, (attr: Attr) => attr.name.startsWith('data-') && actions.has(attr.name))
+      );
     }).map((v, i) => {
       v.el.setAttribute("GP__MAP__", <any>i);
       v.attrs.forEach((a) => v.el.removeAttribute(a.name));
-      return widgetActionReducer(v.attrs.map((a) => a.factory(a.value)));
-    });
+      return v.attrs.map(_compile); //(a) => a.factory(a.value));
+    }).map(widgetActionReducer);
+  }
+
+  function _compile(attr:Attr) : WidgetTemplateAction {
+    const f = actions.get(attr.name);
+    return f(attr.value);
+  }
+
+  function _convert(el: Element, attrs: any) {
+    return attrs && attrs.length ? {el, attrs} : null;
   }
 
   function finalizeElement(root: Element): Element {
     Array
-      .from(root.querySelectorAll('[data-gp]'))
-      .map(n => n.getAttributeNode('data-gp'))
+      .from(root.querySelectorAll('[data-class]'))
+      .map(el => ({el, ad: el.getAttribute('data-class').split(':').map(s => s.trim())}))
       .forEach((a) => {
-        const n = a.ownerElement;
-        const [action, data] = a.value.split(':').map(s => s.trim())
-        if (action) n.setAttribute('pxaction', action);
-        if (data) n.setAttribute('pxdata', data);
-        n.removeAttribute(a.name);
+        if (a.ad[0]) a.el.setAttribute('pxaction', a.ad[0]);
+        if (a.ad[1]) a.el.setAttribute('pxdata', a.ad[1]);
+        a.el.removeAttribute('data-class');
       });
     return root.firstElementChild.cloneNode(true) as Element;
   }
 
-  function getMappedElements(root: Element): Element[] {
-    const q = getMappedAttrs(root)
-      .reduce((acc, attr) => {
-        const n = attr.ownerElement;
-        acc[parseInt(attr.value)] = n;
-        n.removeAttribute(attr.name);
-        return acc;
-      }, []);
-    return q;
-  }
 }
 
-function getMappedAttrs(root: Element) : Attr[] {
+function getMappedElements(root: Element): Element[] {
+  return getMappedAttrs(root)
+    .reduce((acc, attr) => {
+      acc[parseInt(attr.value)] = attr.ownerElement;
+      attr.ownerElement.removeAttribute(attr.name);
+      return acc;
+    }, []);
+}
+
+function getBindAttributes(el: Element, fn: (Attr) => boolean): Attr[] {
+  const attrs = el.attributes;
+  let rc: Attr[];
+  for (let i = 0; i < attrs.length; i++) {
+    const attr = attrs[i];
+    if (fn(attr)) rc ? rc.push(attr) : rc = [attr];
+  }
+  return rc || emptyArray as Attr[];
+}
+
+function getMappedAttrs(root: Element): Attr[] {
   const q = Array
     .from(root.querySelectorAll('[GP__MAP__]'))
     .map((n) => n.getAttributeNode('GP__MAP__'));
@@ -217,7 +233,7 @@ function rN(instructions: WidgetTemplateAction[]) {
   }
 }
 
-function mapElementNodes<T>(root: Element, fn: (el: Element) => T): T[] {
+function mapElements<T>(root: Element, fn: (el: Element) => T): T[] {
   const tw = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
   let a: T[] = [];
   while (tw.nextNode()) {
@@ -227,26 +243,20 @@ function mapElementNodes<T>(root: Element, fn: (el: Element) => T): T[] {
   return a;
 }
 
-function mapElementAttrs<T>(el: Element, fn: (attr: Attr) => T): T[] {
-  const attrs = el.attributes;
-  let a: T[];
-  for (let i = 0; i < attrs.length; i++) {
-    const r = fn(attrs[i]);
-    if (!r) continue;
-    if (!a) a = [];
-    a.push(r);
-  }
-  return a;
-}
-
-function parseSvg(svg: string) {
+function parseSvg(svg: string): Element {
   const parser = new DOMParser();
   const doc = parser.parseFromString(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="__root__">${svg}</svg>`, 'text/html');
   const root = doc.getElementById("__root__");
   root.normalize();
 //Remove comments
-  getCommentNodes(root)
-    .forEach(n => n.parentNode.removeChild(n));
+  getCommentNodes(root).forEach(n => n.parentNode.removeChild(n));
+  return root;
+}
+
+function parseEl(root: Element): Element {
+  root.normalize();
+//Remove comments
+  getCommentNodes(root).forEach(n => n.parentNode.removeChild(n));
   return root;
 }
 

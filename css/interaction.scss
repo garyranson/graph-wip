@@ -1,0 +1,4 @@
+/*.pi-canvas text without this rule, when hovering over text, the cursor changes to an I-beam.*/
+svg.pi-canvas text {
+  cursor: default;
+}

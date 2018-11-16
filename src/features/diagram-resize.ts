@@ -8,7 +8,6 @@ export const DiagramResizeModule = {
 function diagramResize(appBus: AppBus) {
 
   function resize() : void {
-
     appBus.diagramResize.fire(null);
   }
 

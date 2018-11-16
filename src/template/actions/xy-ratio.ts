@@ -2,10 +2,17 @@ import {RectangleLike} from "core/types";
 import {CompiledFunction} from "expression-compiler";
 
 export const XyRatioAction = {
+  $type: xyRatioFactory,
   $name: 'xy-ratio',
-  $type: 'simple',
-  $expr: xyRatioFactoryV,
-  $constant: xyRatioFactoryC
+  $ftype: 'expr',
+}
+
+function xyRatioFactory(constant: boolean,args: []) {
+
+  console.log('xy',args);
+  return constant
+    ? xyRatioFactoryC(args)
+    : xyRatioFactoryV(args);
 }
 
 function xyRatioFactoryC(o: any[]) {
@@ -13,6 +20,8 @@ function xyRatioFactoryC(o: any[]) {
   const yratio = o[1] || 0;
   const xoffset = o[2] || 0;
   const yoffset = o[3] || 0;
+
+  console.log(`xy:${xratio}:xoff:${xoffset}`)
 
   return (el: SVGElement, gp: RectangleLike): void => {
     el.setAttribute("x", <any>((gp.width * xratio) + xoffset));
@@ -29,5 +38,5 @@ function xyRatioFactoryV(o: CompiledFunction[]) {
   return (el: SVGElement, gp: RectangleLike): void => {
     el.setAttribute("x", <any>((gp.width * xratio(gp)) + (xoffset ? xoffset(gp) : 0)));
     el.setAttribute("y", <any>((gp.height * yratio(gp)) + (yoffset ? yoffset(gp) : 0)));
-  };
+  }
 }

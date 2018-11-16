@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "outDir": "build",
-    "module": "commonjs",
+    "module": "system",
     "target": "es6",
     "lib": [
       "DOM",
@@ -33,6 +33,7 @@
       "mouse-handlers/*": [        "./mouse-handlers/*"      ],
       "core/*": [        "./core/*"      ],
       "template/*": [        "./template/*"      ],
+      "layout/*": [        "./layout/*"      ],
       "services/*": [        "./services/*"      ],
       "features/*": [        "./features/*"      ]
     }

@@ -1,7 +1,7 @@
 // @return {double} length of the line
 
 
-import {PointLike, RectangleLike} from "core/types";
+import {LineLike, PointLike, RectangleLike} from "core/types";
 
 export function lineLength(start: PointLike, end: PointLike) : number {
   return Math.sqrt(squaredLength(start, end));
@@ -20,6 +20,16 @@ export function rectMidPoint(r: RectangleLike) : PointLike {
     y: r.y + (r.height/2)
   };
 }
+
+export function lineFromPoints(p1: PointLike, p2: PointLike) : LineLike {
+  return {
+    x1: p1.x,
+    y1: p1.y,
+    x2: p2.x,
+    y2: p2.y
+  };
+}
+
 
 // @return {integer} length without sqrt
 // @note for applications where the exact length is not necessary (e.g. compare only)

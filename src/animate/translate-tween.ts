@@ -43,10 +43,10 @@ export class TranslateTween implements Tween {
     } else {
       this.widget.refresh(<VertexState>{
         ...this.from,
-        x: this.easing(time - this.startTime, this.from.x, this.to.x - this.from.x, this.duration),
-        y: this.easing(time - this.startTime, this.from.y, this.to.y - this.from.y, this.duration),
-        width: this.easing(time - this.startTime, this.from.width, this.to.width - this.from.width, this.duration),
-        height: this.easing(time - this.startTime, this.from.height, this.to.height - this.from.height, this.duration)
+        x: Math.round(this.easing(time - this.startTime, this.from.x, this.to.x - this.from.x, this.duration)),
+        y: Math.round(this.easing(time - this.startTime, this.from.y, this.to.y - this.from.y, this.duration)),
+        width: Math.round(this.easing(time - this.startTime, this.from.width, this.to.width - this.from.width, this.duration)),
+        height: Math.round(this.easing(time - this.startTime, this.from.height, this.to.height - this.from.height, this.duration))
       });
       return false;
     }

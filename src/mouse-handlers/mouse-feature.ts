@@ -2,50 +2,76 @@ import {AppBus} from "bus/app-bus";
 import {emptyLocator, WidgetLocator} from "modules/widget-locator";
 import {DiagramInitEvent} from "bus/diagram-bus";
 import {WidgetAttributes} from "core/types";
+import {Store} from "modules/store";
+import {WidgetCanvas} from "modules/widget-canvas";
 
 export const MouseFeatureModule = {
   $type: MouseFeature,
-  $inject: ['AppBus','WidgetLocator'],
+  $inject: ['AppBus','WidgetLocator','Store','WidgetCanvas'],
   $name: 'MouseFeature'
 }
 function MouseFeature(
   appBus: AppBus,
-  finder: WidgetLocator
+  finder: WidgetLocator,
+  store: Store,
+  canvas: WidgetCanvas
 ) {
+  let el : Element;
+  /*function onPointerDown(e: PointerEvent) : void {
+   // e.preventDefault();
+    console.log(`type:${e.type} ${e.pointerType} press:${e.pressure}  id:${e.pointerId}`);
+    el.setPointerCapture(e.pointerId);
+  }
+  function onPointerMove(e: PointerEvent) : void {
+    e.preventDefault();
+    console.log(`type:${e.type} ${e.pointerType} press:${e.pressure}`);
+  }
+  function onPointerUp(e: PointerEvent) : void {
+    e.preventDefault();
+    console.log(`type:${e.type} ${e.pointerType} press:${e.pressure}`);
+    el.releasePointerCapture(e.pointerId);
+  }
+*/
+
   function onMouseDown(e: MouseEvent): void {
     e.preventDefault();
 
     const currentNodeAttributes = ensureOver(e.target as Element);
+    const mpt = canvas.pointAt(e.clientX, e.clientY);
 
     appBus.nodeTrigger.fire({
       type: 'mousedown',
-      x: e.clientX,
-      y: e.clientY,
+      x: mpt.x,
+      y: mpt.y,
       element: e.target as Element,
       id: currentNodeAttributes.id,
       action: currentNodeAttributes.action,
       data: currentNodeAttributes.data,
       button: e.button,
-      shiftKeys: (e.shiftKey ? 1 : 0) | ((e.altKey || e.metaKey) ? 2 : 0) | (e.ctrlKey ? 4 : 0)
+      shiftKeys: (e.shiftKey ? 1 : 0) | (e.altKey ? 2 : 0) | (e.ctrlKey || e.metaKey ? 4 : 0),
+      source: el,
     });
   }
 
   function mouseClick(e: MouseEvent) {
-    e.preventDefault();
+   e.preventDefault();
 
     const currentNodeAttributes = ensureOver(e.target as Element);
+
+    const mpt = canvas.pointAt(e.clientX, e.clientY);
 
     appBus.nodeClick.fire({
       type: e.type,
       clickCount: (e.type == 'click') ? 1 : 2,
-      x: e.clientX,
-      y: e.clientY,
+      x: mpt.x,
+      y: mpt.y,
       element: e.target as Element,
       id: currentNodeAttributes.id,
       action: currentNodeAttributes.action,
       data: currentNodeAttributes.data,
       button: e.button,
-      shiftKeys: (e.shiftKey ? 1 : 0) | ((e.altKey || e.metaKey) ? 2 : 0) | (e.ctrlKey ? 4 : 0)
+      shiftKeys: (e.shiftKey ? 1 : 0) | (e.altKey ? 2 : 0) | (e.ctrlKey || e.metaKey ? 4 : 0),
+      source: el
     });
   }
 
@@ -71,6 +97,12 @@ function MouseFeature(
 
   let init = appBus.diagramInit.add((e: DiagramInitEvent) => {
     const container = e.container;
+    el = container;
+/*
+    container.addEventListener("pointerdown", onPointerDown);
+    container.addEventListener("pointermove", onPointerMove);
+    container.addEventListener("pointerup", onPointerUp);
+*/
     container.addEventListener("mousedown", onMouseDown);
     container.addEventListener("mouseup", onMouseUp);
     container.addEventListener("mouseout", onMouseEnter);

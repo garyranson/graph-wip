@@ -1,0 +1,13 @@
+/*.px-canvas text without this rule, when hovering over text, the cursor changes to an I-beam.*/
+
+body.px-cursor-override * {
+    cursor: inherit !important;
+}
+
+body.px-drag-over {
+    cursor: move !important;
+}
+
+body.px-no-drop {
+    cursor: no-drop !important;
+}

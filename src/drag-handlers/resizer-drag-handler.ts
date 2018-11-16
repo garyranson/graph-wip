@@ -9,42 +9,45 @@ export const ResizerDragHandlerModule = {
   $item: 'resizer',
   $type: ResizerDragHandler
 }
+
 function ResizerDragHandler(appBus: AppBus, shadowFactory: ShadowWidgetFactory): DragHandlerFactory {
 
   return (state: State, actionData: string, x: number, y: number) => {
     return createResizer(state as VertexState, actionData);
   }
 
-  function createResizer(vertex : VertexState, position: string): DragHandler {
-    let shadow = shadowFactory.create(vertex, '$node-diagramResize', 'tool');
-    let {x, y, width, height} = vertex;
+  function createResizer(vertex: VertexState, position: string): DragHandler {
+    let shadow = shadowFactory.create(vertex, '$shape-resize', 'tool');
+    const {x, y, width, height} = vertex;
+    const minSize = vertex.$type.minumumSize;
+    const maxSize = vertex.$type.maximumSize;
 
     return {move, drop, cancel}
 
     function move(e: WidgetDragEvent) {
-      shadow.update(getMove(e.dx, e.dy));
+      const dx = Math.round(Math.min(Math.max(width + e.dx, minSize.width), maxSize.width) - width);
+      const dy = Math.round(Math.min(Math.max(height + e.dy, minSize.height), maxSize.height) - height);
+      if (dx === 0 && dy === 0) return;
+
+      shadow.update(getMove(dx, dy));
     }
 
     function getMove(dx: number, dy: number): RectangleLike {
-      switch (position) {
-        case 'br' :
-          return {x, y, width: width + dx, height: height + dy};
-        case 'tr' :
-          return {x, y: y + dy, width: width + dx, height: height - dy};
-        case 'tl' :
-          return {x: x + dx, y: y + dy, width: width - dx, height: height - dy};
-        case 'bl' :
-          return {x: x + dx, y, width: width - dx, height: height + dy};
-        default:
-          return {x, y, width, height};
-      }
+      return position === 'br'
+        ? {x, y, width: width + dx, height: height + dy}
+        : position === 'tr'
+          ? {x, y: y + dy, width: width + dx, height: height - dy}
+          : position === 'tl'
+            ? {x: x + dx, y: y + dy, width: width - dx, height: height - dy}
+            : position === 'bl' ? {x: x + dx, y, width: width - dx, height: height + dy}
+              : {x, y, width, height};
     }
 
     function drop(e: WidgetDragEvent) {
-      appBus.nodeRefresh.fire({
+      appBus.resizeNode.fire({
         id: vertex.id,
         eventType: 'resize',
-        payload: shadow.getBounds()
+        bounds: shadow.getBounds()
       });
       cancel();
     }
@@ -56,3 +59,5 @@ function ResizerDragHandler(appBus: AppBus, shadowFactory: ShadowWidgetFactory):
     }
   }
 }
+
+

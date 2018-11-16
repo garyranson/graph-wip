@@ -21,7 +21,7 @@ function LassoDragHandler(appBus: AppBus, shadowFactory: ShadowWidgetFactory): D
   }
 
   function createLasso(vertex: VertexState, x: number, y: number): DragHandler {
-    const widget = shadowFactory.create(vertex, '$node-selector-band', 'tool');
+    const widget = shadowFactory.create(vertex, '$lasso', 'tool');
 
     return {move, drop, cancel}
 
@@ -47,7 +47,7 @@ function LassoDragHandler(appBus: AppBus, shadowFactory: ShadowWidgetFactory): D
     }
 
     function drop(e: WidgetDragEvent) {
-      appBus.nodeSelect.fire({bounds: widget.getBounds()});
+      appBus.selectNode.fire({bounds: widget.getBounds()});
       cancel();
     }
 

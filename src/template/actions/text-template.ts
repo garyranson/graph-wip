@@ -2,9 +2,9 @@ import {RectangleLike} from "core/types";
 import {computeAngle} from "core/geometry";
 
 export const TextTemplateAction = {
+  $type: textTemplateFactory,
   $name: 'text-template',
-  $type: 'self',
-  $constant: textTemplateFactory
+  $ftype: 'self'
 }
 
 function textTemplateFactory(expr: string) {

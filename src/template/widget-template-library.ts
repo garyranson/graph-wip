@@ -3,8 +3,8 @@ import {Widget} from "template/widget";
 import {State} from "core/types";
 
 export interface WidgetTemplateLibrary {
-  getTemplate(name: string): WidgetTemplate;
-  createWidget(state: State): Widget;
+  get(name: string): WidgetTemplate;
+  create(state: State): Widget;
   register(name: string, template: WidgetTemplate);
 }
 
@@ -13,24 +13,26 @@ export const WidgetTemplateLibraryModule = {
   $name: 'WidgetTemplateLibrary',
   $type: WidgetTemplateLibrary
 }
-function WidgetTemplateLibrary() {
+function WidgetTemplateLibrary() : WidgetTemplateLibrary {
   const cache = new Map<string, WidgetTemplate>();
 
-  function getTemplate(name: string) {
+  function get(name: string) {
     return cache.get(name) || cache.get('default');
   }
 
-  function createWidget(state: State): Widget {
-    return getTemplate(state.type).createWidget(state);
+  function create(state: State): Widget {
+    try {
+      return get(state.type).createWidget(state);
+    }
+    catch(e) {
+      console.log(`can't create Widget ${state.type}`);
+      throw e;
+    }
   }
 
   function register(name: string, template: WidgetTemplate): void {
     cache.set(name, template);
   }
 
-  return {
-    getTemplate,
-    createWidget,
-    register
-  }
+  return {get, create, register}
 }

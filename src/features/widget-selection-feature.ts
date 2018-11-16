@@ -1,35 +1,42 @@
-import {WidgetTemplateLibrary} from "template/widget-template-library";
 import {AppBus} from "bus/app-bus";
-import {WidgetCanvas} from "modules/widget-canvas";
-import {Widget} from "template/widget";
-import {StateIdType, VertexState} from "core/types";
-import {Store} from "modules/store";
+import {RectangleLike, StateIdType} from "core/types";
 import {WidgetActionClickEvent} from "drag-handlers/types";
+import {ModelController} from "modules/model-controller";
+import {ShadowWidget, ShadowWidgetFactory} from "modules/shadow-widget-factory";
+import {Store} from "modules/store";
 
 export const WidgetSelectionFeatureModule = {
   $type: WidgetSelectionFeature,
-  $inject: ['AppBus','WidgetTemplateLibrary', 'WidgetCanvas','Store'],
+  $inject: ['AppBus', 'ModelController', 'ShadowWidgetFactory','Store'],
   $name: 'WidgetSelectionFeature'
 }
-function WidgetSelectionFeature(appBus: AppBus, nodeTemplateLibrary: WidgetTemplateLibrary, canvas: WidgetCanvas, store: Store) {
+
+function WidgetSelectionFeature(
+  appBus: AppBus,
+  model: ModelController,
+  shadowFactory: ShadowWidgetFactory,
+  store: Store
+) {
   const selected = new Map<StateIdType, SelectedNode>();
 
   let nodeClick = appBus.nodeClick.add((e: WidgetActionClickEvent) => {
+
+
     if (!e) {
       clear();
       return;
     }
-    if (e.button !== 0) return; //left mouse button only
-    const vertex = store.getVertex(e.id);
 
-    switch (e.shiftKeys) {
-      case 0:
-        clear();
-        on(vertex);
-        return;
-      case 4:
-        toggle(vertex);
-        return;
+    const s = store.getState(e.id);
+
+    if(!s.$type.isSelectable) return;
+
+    if (e.button === 0 && e.shiftKeys === 0) {
+      clear();
+      on(e.id);
+    }
+    else if (e.button === 0 && e.shiftKeys === 4) {
+      toggle(e.id);
     }
   });
 
@@ -39,80 +46,65 @@ function WidgetSelectionFeature(appBus: AppBus, nodeTemplateLibrary: WidgetTempl
   });
 
   function clear(): void {
-    selected.forEach((h) => h.complete());
-    selected.clear();
+    selected.forEach((h) => h.off());
   }
 
-  function on(vertex: VertexState) {
-    if (!vertex) return;
-    const vertexId = vertex.id;
+  function on(id: StateIdType) {
+    const obj = selected.get(id) || _create(id);
+    if (obj) obj.on(model.getVertexCanvasBounds(id));
+  }
 
-    let obj = selected.get(vertexId);
-
+  function toggle(id: StateIdType) {
+    const obj = selected.get(id);
     if (obj) {
-      obj.on();
-      return;
+      obj.off();
+    } else {
+      on(id);
     }
-    const widget = nodeTemplateLibrary.createWidget({...vertex, ...{type: '$node-select'}});
-    canvas.appendToolWidget(widget);
+  }
 
-    selected.set(
-      vertexId,
-      new SelectedNode(
-        selected,
-        vertexId,
-        widget
-      )
+  function _create(id: StateIdType): SelectedNode {
+    return _set(
+      id,
+      new SelectedNode(_cancel, id, shadowFactory.create(model.getVertexCanvasBounds(id), '$node-select', 'tool', id))
     );
   }
 
-  function off(vertex: VertexState) {
-    if (!vertex) return;
-    const nodeId = vertex.id;
-    let obj = selected.get(nodeId);
-    if (!obj) return;
-    obj.off();
+  function _cancel(id: StateIdType): void {
+    const s = selected.get(id);
+    if (!s) return;
+    selected.delete(id);
+    s.complete();
   }
 
-  function toggle(vertex: VertexState) {
-    if (!vertex) return;
-    const nodeId = vertex.id;
-    const obj = selected.get(nodeId);
-    if (obj) {
-      off(vertex);
-    } else {
-      on(vertex);
-    }
+  function _set(id:StateIdType,w: SelectedNode) : SelectedNode {
+    selected.set(id,w);
+    return w;
   }
 }
 
 class SelectedNode {
   private timer: number = 0;
 
-  constructor(
-    private highlights: Map<StateIdType, SelectedNode>,
-    private id: StateIdType,
-    private widget: Widget
-  ) {
-    this.on();
+  constructor(private cb: any, private id: StateIdType, private widget: ShadowWidget) {
   }
 
-  on() {
+  on(state: RectangleLike) {
     if (this.timer) clearTimeout(this.timer);
-    this.widget.removeClass('gp-off').addClass('gp-on');
+    this.widget.removeClass('px-off').update(state);
   }
 
   off() {
     if (this.timer) clearTimeout(this.timer);
-    this.widget.removeClass('gp-on').addClass('gp-off');
-    this.timer = setTimeout(() => this.complete(), 250);
+    this.widget.addClass('px-off');
+    this.timer = setTimeout(this.cb, 2000, this.id);
   }
 
   complete() {
-    if(this.timer) clearTimeout(this.timer);
-    this.highlights.delete(this.id);
+    if (this.timer) clearTimeout(this.timer);
+    if (!this.cb) return;
     this.widget.remove();
     this.timer = 0;
+    this.cb = null;
   }
 }
-

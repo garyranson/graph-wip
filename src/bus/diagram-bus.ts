@@ -1,4 +1,4 @@
-import {createDelegate, DelegateCallbackCreator, EventDelegate} from "../core/event-delegate";
+import {createDelegate, ExceptionCallback, EventDelegate} from "../core/event-delegate";
 
 export interface DiagramInitEvent {
   container: Element
@@ -10,7 +10,7 @@ export interface DiagramBus {
   diagramResize : EventDelegate<void>;
 }
 
-export function createDiagramBus(callback?: DelegateCallbackCreator) : DiagramBus {
+export function createDiagramBus(callback?: ExceptionCallback) : DiagramBus {
   return {
     diagramInit: createDelegate<DiagramInitEvent>(callback),
     diagramDestroy: createDelegate<any>(callback),

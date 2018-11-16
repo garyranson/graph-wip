@@ -4,42 +4,39 @@ export type WidgetLocator = (node: Element) => WidgetAttributes;
 
 export const WidgetLocatorModule = {
   $type: WidgetLocator,
-  $inject: ['Container'],
+  $inject: [],
   $name: 'WidgetLocator'
 }
 
-function WidgetLocator(rootElement: Element): WidgetLocator {
+function WidgetLocator(): WidgetLocator {
   let targetElement: Element = null;
   let currentNodeEvent: WidgetAttributes = null;
   let matchedElement: Element = null;
 
   return function cellFinder(element: Element): WidgetAttributes {
 
-    if (element === targetElement) return currentNodeEvent;
+    if (element === targetElement)
+      return currentNodeEvent;
+
     targetElement = element;
 
-    while (element) {
-      if (element === matchedElement) {
+    for (let el = element; el; el = el.parentElement) {
+      if (el === matchedElement)
         return currentNodeEvent;
-      }
 
-      let nodeId = element === rootElement ? '0' : element.getAttribute("pxnode");
+      const id = el.getAttribute("pxnode");
 
-      if (nodeId) {
-        matchedElement = element;
+      if (!id) continue;
 
-        currentNodeEvent = {
-          id: nodeId,
-          action: element.getAttribute("pxaction"),
-          data: element.getAttribute("pxdata")
-        };
+      matchedElement = el;
 
-        return currentNodeEvent;
-      }
-      element = element.parentElement;
+      return currentNodeEvent = {
+        id: id,
+        action: el.getAttribute("pxaction"),
+        data: el.getAttribute("pxdata")
+      };
     }
-    matchedElement = null;
-    return null;
+    return matchedElement = null;
   }
 }
 

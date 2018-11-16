@@ -16,7 +16,8 @@ function WidgetActionFeature(
 ) {
 
   const elementMouseDown = appBus.nodeTrigger.add((nat: WidgetActionEvent) => {
-    if (nat.button !== 0) return;
+    if (nat.button !== 0 || nat.shiftKeys!==0) return;
+
     switch (dragHandlers.getAction(nat.action)) {
       case "deffered":
         appBus.mouseDragDefer.fire(nat);

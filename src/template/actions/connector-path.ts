@@ -2,18 +2,19 @@ import {EdgeState, PointLike} from "core/types";
 import {lineLength, movePoint} from "core/geometry";
 
 export const ConnectorPathAction = {
+  $type: connectorPathFactory,
   $name: 'connector-path',
-  $type: 'self',
-  $constant: connectorPathFactory
+  $ftype: 'self',
 }
 
 
 function connectorPathFactory() {
-  return (el: SVGElement, gp: any): void => {
-    el.setAttribute('d', roundedConnector(gp));
-  };
+  return connectorPathAction;
 }
 
+function connectorPathAction(el: SVGElement, gp: any): void {
+  el.setAttribute('d', roundedConnector(gp));
+}
 
 function roundedConnector(gp: EdgeState): string {
   const route: PointLike[] = gp.route;

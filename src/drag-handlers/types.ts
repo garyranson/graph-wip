@@ -1,10 +1,13 @@
 import {State, StateIdType} from "core/types";
 
 export interface WidgetDragEvent {
+  id: StateIdType;
   x: number;
   y: number;
   dx: number;
   dy: number;
+  canvasX: number;
+  canvasY: number;
 }
 
 
@@ -17,7 +20,8 @@ export interface WidgetActionEvent {
   action: string,
   data: string,
   button: number,
-  shiftKeys: number
+  shiftKeys: number,
+  source: Element
 }
 
 export interface WidgetActionClickEvent extends WidgetActionEvent {
@@ -36,7 +40,7 @@ export interface WidgetDragDropEvent extends WidgetDragEvent {
 export interface DragHandler {
   move(WidgetDragEvent),
   drop(WidgetDragDropEvent),
-  over?(WidgetDragOverEvent),
+  over?(WidgetDragOverEvent) : string|void,
   cancel()
 }
 

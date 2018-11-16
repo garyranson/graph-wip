@@ -4,14 +4,15 @@ import {NodeEnterLeaveEvent} from "bus/node-hightlight-bus";
 import {WidgetCanvas} from "modules/widget-canvas";
 import {Widget} from "template/widget";
 import {Store} from "modules/store";
-import {StateIdType} from "core/types";
+import {StateIdType, VertexState} from "core/types";
+import {ModelController} from "modules/model-controller";
 
 export const WidgetHighlightFeatureModule = {
   $type: WidgetHighlightFeature,
-  $inject: ['AppBus', 'WidgetCanvas', 'Store', 'WidgetTemplateLibrary'],
+  $inject: ['AppBus', 'WidgetCanvas', 'Store', 'WidgetTemplateLibrary','ModelController'],
   $name: 'WidgetHighlightFeature'
 }
-function WidgetHighlightFeature(appBus: AppBus, canvas: WidgetCanvas, store: Store, nodeTemplateLibary: WidgetTemplateLibrary) {
+function WidgetHighlightFeature(appBus: AppBus, canvas: WidgetCanvas, store: Store, nodeTemplateLibary: WidgetTemplateLibrary, model: ModelController) {
 
   interface NodeCacheEntry {
     timer: number;
@@ -27,33 +28,39 @@ function WidgetHighlightFeature(appBus: AppBus, canvas: WidgetCanvas, store: Sto
     //leave
     if (currentNode && (!e || currentNode !== e.enter)) {
       const view = getShadow(currentNode, true);
-      if (view) view.removeClass('gp-on').addClass('gp-off');
+      if (view) view.addClass('px-off');
       currentNode = null;
     }
     //enter
-    if (e && e.enter && e.enter !== '0') {
+    const s = store.getState(e.enter);
+    console.log(e.enter,s);
+    if (s && s.$type.isSelectable) {
       currentNode = e.enter;
       const widget = getShadow(currentNode, false) || createShadow(currentNode);
-      if (widget) widget.removeClass('gp-off').addClass('gp-on');
+      if (widget) widget.removeClass('px-off');
     }
   });
 
-  function createShadow(e: string): Widget {
-    const vertex = store.getVertex(e);
-    if (!vertex) return;
-    const widget = nodeTemplateLibary.createWidget({...vertex, ...{type: '$node-highlight'}});
+  function createShadow(e: StateIdType): Widget {
+    const widget = nodeTemplateLibary.create(adjustForCanvas(e));
     canvas.appendToolWidget(widget);
     nodeCache.set(e, {timer: 0, widget,id: e});
     return widget;
   }
 
-  function getShadow(nodeId: string, reset?: boolean): Widget {
-    const entry = nodeCache.get(nodeId);
+
+  function adjustForCanvas(id: StateIdType) : VertexState {
+    const ev = model.getVertexCanvasBounds(id);
+    return {...ev, id, type: '$shape-highlight'} as VertexState;
+  }
+
+  function getShadow(id: StateIdType, reset?: boolean): Widget {
+    const entry = nodeCache.get(id);
     if (!entry) return;
     if (entry.timer) clearTimeout(entry.timer);
-    entry.timer = reset ? setTimeout(() => remove(nodeId), 2000) : 0;
+    entry.timer = reset ? setTimeout(() => remove(id), 1000) : 0;
     const widget = entry.widget;
-    widget.refresh(store.getVertex(entry.id));
+    widget.refresh(adjustForCanvas(id));
     return widget;
   }
 

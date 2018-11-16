@@ -1,0 +1,19 @@
+{
+  "type" : "demo",
+  "model": {
+    "type": "$node-root",
+    "vertices": [
+      {"type": "container","x": 0,"y": 0,"width":120,"height":80},
+      {"type": "container","x": 100,"y": 100,"width":120,"height":80},
+      {"type": "container","x": 200,"y": 150,"width":120,"height":80},
+      {"type": "select","x":30,"y":65,"width":120,"height":80},
+      {"type": "default","x":300,"y":365,"width":120,"height":80},
+      {"type": "default","x":730,"y":765,"width":120,"height":80},
+      {"type": "default","x":430,"y":465,"width":120,"height":80},
+      {"type": "default","x":130,"y":65,"width":120,"height":80},
+      {"type": "default","x":1300,"y":365,"width":120,"height":80},
+      {"type": "default","x":1730,"y":765,"width":120,"height":80},
+      {"type": "default","x":2430,"y":465,"width":120,"height":80}
+    ]
+  }
+}
