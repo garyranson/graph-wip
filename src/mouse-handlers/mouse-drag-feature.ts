@@ -5,7 +5,7 @@ import {Store} from "modules/store";
 import {DragHandler, WidgetActionEvent, WidgetDragEvent} from "drag-handlers/types";
 import {ModelController} from "modules/model-controller";
 import {WidgetCanvas} from "modules/widget-canvas";
-import {Container} from "modules/container-initialiser";
+import {Container} from "modules/container-initialiser2";
 
 interface Cursor {
   (string?) :void;

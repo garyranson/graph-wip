@@ -1,7 +1,7 @@
 import {defineModule, Injector} from "core/injector";
 import {ModelControllerModule} from "modules/model-controller";
 import {StoreModule} from "modules/store";
-import {ContainerModule} from "modules/container-initialiser";
+import {ContainerModule} from "modules/container-initialiser2";
 import {TreeBuilderModule} from "features/tree-builder";
 import {LayoutManagerModule} from "layout/layout-manager";
 import {WidgetCanvasModule} from "modules/widget-canvas";
