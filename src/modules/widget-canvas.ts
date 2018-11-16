@@ -5,7 +5,7 @@ import {animate} from "../animate/animate";
 import {LineTween, TranslateTween} from "../animate/translate-tween";
 import {Easings} from "../animate/easings";
 import {Store} from "modules/store";
-import {Container} from "modules/container-initialiser2";
+import {Container} from "modules/container-initialiser";
 
 export interface WidgetCanvas {
 //  getWidgetState<T extends State>(id: StateIdType): T;
