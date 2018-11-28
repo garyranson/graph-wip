@@ -4,7 +4,7 @@ import {lineLength, movePoint} from "core/geometry";
 export const ConnectorPathAction = {
   $type: connectorPathFactory,
   $name: 'connector-path',
-  $ftype: 'self',
+  $item: 'self',
 }
 
 

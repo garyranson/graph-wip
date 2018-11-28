@@ -1,6 +1,25 @@
 import {WidgetTemplateAction} from "./types";
 import {RectangleLike} from "core/types";
 
+export function widgetActionReducer(values: WidgetTemplateAction[]) {
+  switch (values.length) {
+    case 0:
+      return r0;
+    case 1:
+      return values[0];
+    case 2:
+      return r2(values[0], values[1]);
+    case 3:
+      return r3(values[0], values[1], values[2]);
+    case 4:
+      return r4(values[0], values[1], values[2], values[3]);
+    case 5:
+      return r5(values[0], values[1], values[2], values[3], values[4]);
+    default:
+      return rN(values);
+  }
+}
+
 function r0(el: SVGElement, gp: RectangleLike) : void {
 }
 
@@ -42,21 +61,3 @@ function rN(values:WidgetTemplateAction[]) : WidgetTemplateAction {
   };
 }
 
-export function widgetActionReducer(values: WidgetTemplateAction[]) {
-  switch (values.length) {
-    case 0:
-      return r0;
-    case 1:
-      return values[0];
-    case 2:
-      return r2(values[0], values[1]);
-    case 3:
-      return r3(values[0], values[1], values[2]);
-    case 4:
-      return r4(values[0], values[1], values[2], values[3]);
-    case 5:
-      return r5(values[0], values[1], values[2], values[3], values[4]);
-    default:
-      return rN(values);
-  }
-}

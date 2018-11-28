@@ -10,11 +10,11 @@
  */
 
 import {StateIdType} from "core/types";
-import {Store} from "modules/store";
+import {Graph} from "modules/graph";
 
 export const TreeBuilderModule = {
   $type: TreeBuilder,
-  $inject: ['Store'],
+  $inject: ['Graph'],
   $name: 'TreeBuilder'
 }
 
@@ -28,49 +28,19 @@ export interface TreeBuilder {
   (create: StateIdType[], force: StateIdType[]): LayoutLeaf;
 }
 
-function TreeBuilder(store: Store) : TreeBuilder {
+function TreeBuilder(graph: Graph) : TreeBuilder {
   return function bingo(create: StateIdType[], force: StateIdType[]): LayoutLeaf {
     const tree = create.reduce(buildPrimaryTree, new Map<StateIdType, LayoutLeaf>());
     if (force) {
       force.reduce(appendForcedLayouts, tree)
     }
-    return tree.get(store.getRootId());
+    return tree.get(graph.getRootId());
   }
 
   function buildPrimaryTree(layoutmap: Map<StateIdType, LayoutLeaf>, id: StateIdType) {
-    const root = store.getRootId();
-    if (root === id) return layoutmap;
-    let parent = store.getParentId(id);
-
-    let leaf = layoutmap.get(parent);
-    if (leaf) {
-      leaf.layout = true;
-      return layoutmap;
-    }
-
-    leaf = {
-      id: parent,
-      children: [],
-      layout: true
-    };
-
-    layoutmap.set(parent, leaf);
-
-    while (parent !== root) {
-      parent = store.getParentId(parent);
-      const parentLeaf = layoutmap.get(parent);
-      if (parentLeaf) {
-        parentLeaf.children.push(leaf);
-        return layoutmap;
-      }
-      leaf = {
-        id: parent,
-        children: [leaf],
-        layout: false
-      }
-      layoutmap.set(parent, leaf);
-    }
-    return layoutmap;
+    return graph.getRootId() === id
+      ? layoutmap
+      : appendForcedLayouts(layoutmap, graph.getParentId(id));
   }
 
   function appendForcedLayouts(layoutmap: Map<StateIdType, LayoutLeaf>, parent: StateIdType) {
@@ -86,22 +56,21 @@ function TreeBuilder(store: Store) : TreeBuilder {
     };
     layoutmap.set(parent, leaf);
 
-    const root = store.getRootId();
+    const root = graph.getRootId();
 
     while (parent !== root) {
-      parent = store.getParentId(parent);
-      let f = layoutmap.get(parent);
-      if (f) {
-        f.children.push(leaf);
+      parent = graph.getParentId(parent);
+      let parentLeaf = layoutmap.get(parent);
+      if (parentLeaf) {
+        parentLeaf.children.push(leaf);
         return layoutmap;
-      } else {
-        leaf = {
-          id: parent,
-          children: [leaf],
-          layout: false
-        }
-        layoutmap.set(parent, leaf);
       }
+      leaf = {
+        id: parent,
+        children: [leaf],
+        layout: false
+      }
+      layoutmap.set(parent, leaf);
     }
     return layoutmap;
   }

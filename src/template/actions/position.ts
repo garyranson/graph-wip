@@ -4,7 +4,7 @@ import {CompiledFunction} from "expression-compiler";
 export const PositionAction = {
   $type: positionFactory,
   $name: 'position',
-  $ftype: 'expr',
+  $item: 'expr',
 }
 
 function positionFactory(constant: boolean,args: []) {

@@ -9,7 +9,7 @@ export const MouseDragDeferredFeatureModule = {
 export function mouseDragDeferredFeature(appBus: AppBus) {
   let eventData: WidgetActionEvent;
 
-  const dragDefer = appBus.mouseDragDefer.add((e: WidgetActionEvent) => {
+  const dragDefer = appBus.widgetDragDefer.add((e: WidgetActionEvent) => {
     eventData = Object.freeze({...e});
     document.addEventListener('mouseup', deactivate, true);
     document.addEventListener('mousemove', mouseMove, true);
@@ -17,7 +17,7 @@ export function mouseDragDeferredFeature(appBus: AppBus) {
 
   const destroy = appBus.diagramDestroy.add(() => {
     appBus.diagramDestroy.remove(destroy);
-    appBus.mouseDragDefer.remove(dragDefer);
+    appBus.widgetDragDefer.remove(dragDefer);
   });
 
   function deactivate() {
@@ -33,7 +33,7 @@ export function mouseDragDeferredFeature(appBus: AppBus) {
       return;
 
     deactivate();
-    appBus.mouseDragRequest.fire(eventData);
+    appBus.widgetDragRequest.fire(eventData);
     eventData = null;
   }
 }

@@ -4,7 +4,7 @@ import {CompiledFunction} from "expression-compiler";
 export const SizeAction = {
   $type: sizeFactory,
   $name: 'size',
-  $ftype: 'expr',
+  $item: 'expr',
 }
 
 function sizeFactory(constant: boolean,args: any[]) {

@@ -3,7 +3,7 @@ import {lineMidPoint} from "core/geometry";
 export const ConnectorXyAction = {
   $type: connectorFactory,
   $name: 'connector-xy',
-  $ftype: 'self',
+  $item: 'self',
 }
 
 function connectorFactory() {

@@ -1,12 +1,12 @@
 import {SizeLike, StateIdType, VertexState} from "core/types";
 import {LayoutLeaf} from "features/tree-builder";
-import {Store} from "modules/store";
+import {Graph} from "modules/graph";
 import {flowLayout} from "layout/flow-layout";
 import {fillLayout} from "layout/fill-layout";
 
 export const LayoutManagerModule = {
   $type: LayoutManager,
-  $inject: ['Store'],
+  $inject: ['Graph'],
   $name: 'LayoutManager'
 }
 
@@ -15,10 +15,10 @@ export interface LayoutManager {
 }
 
 export interface LayoutFunction {
-  (store: Store, container: VertexState, children: VertexState[]): SizeLike
+  (graph: Graph, container: VertexState, children: VertexState[]): SizeLike
 }
 
-function LayoutManager(store: Store) : LayoutManager {
+function LayoutManager(store: Graph) : LayoutManager {
 
   return function layoutManager(root: LayoutLeaf): void {
     walkit(root);

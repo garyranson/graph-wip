@@ -4,12 +4,10 @@ import {CompiledFunction} from "expression-compiler";
 export const XyRatioAction = {
   $type: xyRatioFactory,
   $name: 'xy-ratio',
-  $ftype: 'expr',
+  $item: 'expr',
 }
 
 function xyRatioFactory(constant: boolean,args: []) {
-
-  console.log('xy',args);
   return constant
     ? xyRatioFactoryC(args)
     : xyRatioFactoryV(args);
@@ -20,8 +18,6 @@ function xyRatioFactoryC(o: any[]) {
   const yratio = o[1] || 0;
   const xoffset = o[2] || 0;
   const yoffset = o[3] || 0;
-
-  console.log(`xy:${xratio}:xoff:${xoffset}`)
 
   return (el: SVGElement, gp: RectangleLike): void => {
     el.setAttribute("x", <any>((gp.width * xratio) + xoffset));

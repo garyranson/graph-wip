@@ -4,7 +4,7 @@ import {CompiledFunction} from "expression-compiler";
 export const WidthAction = {
   $type: widthFactory,
   $name: 'width',
-  $ftype: 'expr',
+  $item: 'expr',
 }
 
 function widthFactory(constant: boolean, args: any[]) {

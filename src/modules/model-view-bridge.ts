@@ -1,21 +1,21 @@
 import {AppBus} from "bus/app-bus";
 import {StoreBusEvent} from "bus/store-bus";
-import {WidgetCanvas} from "modules/widget-canvas";
+import {WidgetController} from "template/widget-controller";
 import {StateIdType} from "core/types";
-import {Store} from "modules/store";
+import {Graph} from "modules/graph";
 import {TreeBuilder} from "features/tree-builder";
 import {LayoutManager} from "layout/layout-manager";
 
 export const ModelViewBridgeModule = {
   $type: ModelViewBridge,
-  $inject: ['AppBus', 'WidgetCanvas', 'Store', 'TreeBuilder', 'LayoutManager'],
+  $inject: ['AppBus', 'WidgetController', 'Graph', 'TreeBuilder', 'LayoutManager'],
   $name: 'ModelViewBridge'
 }
 
 function ModelViewBridge(
   appBus: AppBus,
-  canvas: WidgetCanvas,
-  store: Store,
+  canvas: WidgetController,
+  graph: Graph,
   treeBuilder: TreeBuilder,
   layout: LayoutManager
 ): void {
@@ -23,11 +23,10 @@ function ModelViewBridge(
   const raf = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
   let active = false;
   let inprocess = false;
-  let createVertex: Set<StateIdType>;
-  let createEdge: Set<StateIdType>;
+  let updateVertex: Set<StateIdType>;
+  let updateEdge: Set<StateIdType>;
   let removeState: Set<StateIdType>;
   let forceState: Set<StateIdType>;
-  let updateEdge: Set<StateIdType>;
 
   const {applyDeferred, refreshWidget, removeWidget} = canvas;
 
@@ -36,11 +35,13 @@ function ModelViewBridge(
   appBus.storeUpdate.add((sbe: StoreBusEvent) => {
     switch (sbe.type) {
       case 'new-root' :
+        canvas.createRoot(graph.getVertex(sbe.id));
+        return;
       case 'new-vertex' :
       case 'update-vertex' :
         activate();
-        if (!createVertex) createVertex = new Set<StateIdType>();
-        createVertex.add(sbe.id);
+        if (!updateVertex) updateVertex = new Set<StateIdType>();
+        updateVertex.add(sbe.id);
 
         if (sbe.force) {
           if (!forceState) forceState = new Set<StateIdType>();
@@ -49,10 +50,6 @@ function ModelViewBridge(
 
         return;
       case 'new-edge' :
-        activate();
-        if (!createEdge) createEdge = new Set<StateIdType>();
-        createEdge.add(sbe.id);
-        return;
       case 'update-edge' :
         activate();
         if (!updateEdge) updateEdge = new Set<StateIdType>();
@@ -76,23 +73,27 @@ function ModelViewBridge(
 
   function fire() {
 
-    if (createVertex) {
-      console.log('resize begin');
+    if (updateVertex) {
       layout(
         treeBuilder(
-          Array.from(createVertex),
+          Array.from(updateVertex),
           (forceState) ? Array.from(forceState) : null
         )
       );
-      console.log('resize end');
     }
 
     inprocess = true;
 
     try {
-      if (createVertex) createVertex.forEach(refreshWidget);
-      if (createEdge) createEdge.forEach(refreshWidget);
-      if (updateEdge) updateEdge.forEach(refreshWidget);
+/*
+      appBus.canvasRefresh.fire({
+        edges: updateEdge,
+        vertices: updateVertex,
+        removes: removeState
+      });
+*/
+      if (updateVertex) updateVertex.forEach(refreshW);
+      if (updateEdge) updateEdge.forEach(refreshW);
       if (removeState) removeState.forEach(removeWidget);
       applyDeferred();
     }
@@ -101,9 +102,12 @@ function ModelViewBridge(
     }
   }
 
+  function refreshW(id: string) {
+    refreshWidget(graph.getState(id));
+  }
+
   function initialise() {
-    createVertex = null;
-    createEdge = null;
+    updateVertex = null;
     removeState = null;
     updateEdge = null;
     forceState = null;

@@ -1,15 +1,19 @@
 import {createDelegate, ExceptionCallback, EventDelegate} from "../core/event-delegate";
-import {RectangleLike, StateIdType} from "core/types";
+import {RectangleLike, StateIdType, VertexMove} from "core/types";
 
 export interface ModelBusEvent {
   id: StateIdType;
   eventType: string;
 }
 
-export interface ModelBusMoveNodeEvent extends ModelBusEvent {
+export interface ModelBusMoveNodeEvent2 extends ModelBusEvent {
   target: StateIdType;
-  x: number,
-  y: number,
+  index: VertexMove;
+}
+export interface ModelBusMoveNodeEvent1 extends ModelBusEvent {
+  target: StateIdType;
+  x: number;
+  y: number;
 }
 
 export interface ModelBusResizeNodeEvent extends ModelBusEvent {
@@ -29,7 +33,7 @@ export interface ModelBus {
   createNode: EventDelegate<ModelBusEvent>;
   removeNode: EventDelegate<ModelBusEvent>;
   selectNode: EventDelegate<NodeBusSelectEvent>;
-  moveNode: EventDelegate<ModelBusMoveNodeEvent>;
+  moveNode: EventDelegate<ModelBusMoveNodeEvent1|ModelBusMoveNodeEvent1>;
   resizeNode: EventDelegate<ModelBusResizeNodeEvent>;
   createEdge: EventDelegate<ModelBusCreateEdgeEvent>;
 }
@@ -39,7 +43,7 @@ export function createModelBus(callback?: ExceptionCallback): ModelBus {
     createNode: createDelegate<ModelBusEvent>(callback),
     removeNode: createDelegate<ModelBusEvent>(callback),
     selectNode: createDelegate<NodeBusSelectEvent>(callback),
-    moveNode: createDelegate<ModelBusMoveNodeEvent>(callback),
+    moveNode: createDelegate<ModelBusMoveNodeEvent1|ModelBusMoveNodeEvent1>(callback),
     resizeNode: createDelegate<ModelBusResizeNodeEvent>(callback),
     createEdge: createDelegate<ModelBusCreateEdgeEvent>(callback),
   }

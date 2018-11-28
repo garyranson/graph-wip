@@ -4,7 +4,7 @@ import {RectangleLike} from "core/types";
 export const TextAction = {
   $type: textFactory,
   $name: 'text',
-  $ftype: 'text',
+  $item: 'text',
 }
 
 function textFactory(constant: boolean,value: CompiledFunction|string) {

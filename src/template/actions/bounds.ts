@@ -3,7 +3,7 @@ import {RectangleLike} from "core/types";
 export const BoundsAction = {
   $type: boundsActionFactory,
   $name: 'bounds-bind',
-  $ftype: 'self',
+  $item: 'self',
 }
 
 function boundsActionFactory() {

@@ -1,79 +1,44 @@
 import {AppBus} from "bus/app-bus";
-import {WidgetTemplateLibrary} from "../template/widget-template-library";
-import {NodeEnterLeaveEvent} from "bus/node-hightlight-bus";
-import {WidgetCanvas} from "modules/widget-canvas";
-import {Widget} from "template/widget";
-import {Store} from "modules/store";
-import {StateIdType, VertexState} from "core/types";
-import {ModelController} from "modules/model-controller";
+import {WidgetEnterLeaveEvent} from "bus/node-hightlight-bus";
+import {StateIdType} from "core/types";
+import {Graph} from "modules/graph";
+import {ModelConstraints} from "modules/constraints";
 
 export const WidgetHighlightFeatureModule = {
   $type: WidgetHighlightFeature,
-  $inject: ['AppBus', 'WidgetCanvas', 'Store', 'WidgetTemplateLibrary','ModelController'],
+  $inject: ['AppBus', 'Graph', 'ModelConstraints'],
   $name: 'WidgetHighlightFeature'
 }
-function WidgetHighlightFeature(appBus: AppBus, canvas: WidgetCanvas, store: Store, nodeTemplateLibary: WidgetTemplateLibrary, model: ModelController) {
 
-  interface NodeCacheEntry {
-    timer: number;
-    id: StateIdType;
-    widget: Widget;
-  }
-
-  const nodeCache = new Map<string, NodeCacheEntry>();
+function WidgetHighlightFeature(appBus: AppBus, graph: Graph, constraints: ModelConstraints) {
 
   let currentNode: string;
 
-  const nodeEnter = appBus.nodeEnterLeave.add((e: NodeEnterLeaveEvent) => {
+  const nodeEnter = appBus.widgetEnterLeave.add((e: WidgetEnterLeaveEvent) => {
     //leave
     if (currentNode && (!e || currentNode !== e.enter)) {
-      const view = getShadow(currentNode, true);
-      if (view) view.addClass('px-off');
+      update(currentNode, 'off');
       currentNode = null;
     }
     //enter
-    const s = store.getState(e.enter);
-    console.log(e.enter,s);
-    if (s && s.$type.isSelectable) {
+    if (e && e.enter && constraints.isSelectable(e.enter)) {
       currentNode = e.enter;
-      const widget = getShadow(currentNode, false) || createShadow(currentNode);
-      if (widget) widget.removeClass('px-off');
+      update(e.enter, 'on');
     }
   });
 
-  function createShadow(e: StateIdType): Widget {
-    const widget = nodeTemplateLibary.create(adjustForCanvas(e));
-    canvas.appendToolWidget(widget);
-    nodeCache.set(e, {timer: 0, widget,id: e});
-    return widget;
-  }
-
-
-  function adjustForCanvas(id: StateIdType) : VertexState {
-    const ev = model.getVertexCanvasBounds(id);
-    return {...ev, id, type: '$shape-highlight'} as VertexState;
-  }
-
-  function getShadow(id: StateIdType, reset?: boolean): Widget {
-    const entry = nodeCache.get(id);
-    if (!entry) return;
-    if (entry.timer) clearTimeout(entry.timer);
-    entry.timer = reset ? setTimeout(() => remove(id), 1000) : 0;
-    const widget = entry.widget;
-    widget.refresh(adjustForCanvas(id));
-    return widget;
-  }
-
-  function remove(e: string) {
-    const view = getShadow(e);
-    if (!view) return;
-    nodeCache.delete(e);
-    view.remove();
+  function update(id: StateIdType, selectionState: "on"|"off"): void {
+    appBus.widgetSelection.fire({
+      type: 'hover',
+      template: '$shape-highlight',
+      selectionState,
+      bounds: graph.getCanvasBounds(id),
+      id
+    });
   }
 
   const destroy = appBus.diagramDestroy.add(() => {
     appBus.diagramDestroy.remove(destroy);
-    appBus.nodeEnterLeave.remove(nodeEnter);
-    nodeCache.forEach((v, k) => remove(k));
+    appBus.widgetEnterLeave.remove(nodeEnter);
   });
 }

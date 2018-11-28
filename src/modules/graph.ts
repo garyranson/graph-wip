@@ -1,9 +1,9 @@
-import {EdgeState, State, StateIdType, VertexState} from "core/types";
+import {EdgeState, RectangleLike, State, StateIdType, VertexMove, VertexState} from "core/types";
 import {AppBus} from "bus/app-bus";
 import {clipLine} from "core/scalaclip";
 import {lineFromPoints, rectMidPoint} from "core/geometry";
 
-export interface Store {
+export interface Graph {
   getEdge(id: StateIdType): EdgeState;
 
   updateEdge(edge: EdgeState): EdgeState;
@@ -18,7 +18,7 @@ export interface Store {
 
   getChildVertices(id: StateIdType): VertexState[];
 
-  updateVertex(edge: VertexState): VertexState;
+  updateVertex(edge: VertexState, index?: VertexMove): VertexState;
 
   createVertex(edge: VertexState): VertexState;
 
@@ -31,18 +31,20 @@ export interface Store {
   getParentId(id: StateIdType): StateIdType;
 
   getRootId(): StateIdType;
+
+  getCanvasBounds(id: StateIdType): RectangleLike;
 }
 
 export const StoreModule = {
-  $type: Store,
+  $type: Graph,
   $inject: ['AppBus'],
-  $name: 'Store'
+  $name: 'Graph'
 }
 const _emptyArray = Object.freeze([]);
 
 type EdgeDirection = "in" | "out";
 
-function Store(appBus: AppBus): Store {
+function Graph(appBus: AppBus): Graph {
 
   const emptySet = [];
   const {storeUpdate} = appBus;
@@ -79,6 +81,23 @@ function Store(appBus: AppBus): Store {
     getState,
     getParentId,
     getRootId,
+    getCanvasBounds,
+  }
+
+  function getCanvasBounds(id: StateIdType): RectangleLike {
+    let s = getVertex(id);
+    if (!s) return {x: 0, y: 0, width: 0, height: 0};
+    let x = 0;
+    let y = 0;
+    let w = s.width;
+    let h = s.height;
+
+    while (s.parent) {
+      x += s.x;
+      y += s.y;
+      s = getVertex(s.parent);
+    }
+    return {x, y, width: w, height: h};
   }
 
   function getRootId(): StateIdType {
@@ -108,9 +127,8 @@ function Store(appBus: AppBus): Store {
     throw "Expected to find a vertex";
   }
 
-
   function createRoot(state: VertexState): VertexState {
-    if(rootId) throw 'rootAlreadySet';
+    if (rootId) throw 'rootAlreadySet';
     rootId = state.id;
     if (getVertex(state.id)) throw "State already exists";
     states.set(state.id, state);
@@ -132,15 +150,18 @@ function Store(appBus: AppBus): Store {
     return state;
   }
 
-  function updateVertex(state: VertexState): VertexState {
+  function updateVertex(state: VertexState, move?: VertexMove): VertexState {
     const id = state.id;
     const existingState = getVertex(id);
     if (!existingState) throw "State does not exist";
 
     states.set(id, state);
 
-    if (state.parent != existingState.parent)
-      _moveChild(id, existingState.parent, state.parent);
+    if (state.parent !== existingState.parent)
+      _changeParent(id, existingState.parent, state.parent, move);
+    else if (move && move.id !== id) {
+      _reorderChild(id, state.parent, move);
+    }
 
     storeUpdate.fire({type: 'update-vertex', id, force: hasChildren(id)});
 
@@ -149,8 +170,44 @@ function Store(appBus: AppBus): Store {
     return state;
   }
 
-  function _moveChild(child: StateIdType, from: StateIdType, to: StateIdType) {
-    if(from===to) return;
+  function _reorderChild(id: StateIdType, parent: StateIdType, move: VertexMove) {
+    if (id === move.id) return; // no change
+    const children = childVertices.get(parent);
+    if (!children) return; // should not happen
+    const newlist = _move(children,id,move);
+    if (!newlist || newlist === children)      return;
+    childVertices.set(parent, newlist);
+    storeUpdate.fire({type: 'update-vertex', id: parent, force: true});
+  }
+
+  function _move(children: StateIdType[], id: StateIdType, move: VertexMove): StateIdType[] {
+    const s = children.filter((e) => e !== id);
+    const p = children.indexOf(move.id);
+
+    switch (move.action) {
+      case 'end':
+        if (children[children.length - 1] === id) return children;
+        s.splice(children.length,0,id);
+        return s;
+      case 'start':
+        if (children[0] === id) return children;
+        s.splice(0, 0, id);
+        return s;
+      case 'after':
+        if (children[p+1] === id) return children;
+        s.splice(p+1, 0, id);
+        return s;
+      case 'before':
+        if (children[p - 1] === id) return children;
+        s.splice(p, 0, id);
+        return s;
+      default:
+        return children;
+    }
+  }
+
+  function _changeParent(child: StateIdType, from: StateIdType, to: StateIdType, move: VertexMove) {
+    if (from === to) return;
     const ev = childVertices.get(from);
     const ev2 = ev.filter((e) => e !== child);
 
@@ -159,18 +216,15 @@ function Store(appBus: AppBus): Store {
     else
       childVertices.delete(from);
 
-    const nv = childVertices.get(to) || [];
-
-    childVertices.set(to, nv.concat(child));
-
+    let nv = childVertices.get(to) || [];
+    childVertices.set(to, _move(nv, child, move?move:{action:'end'}));
     //TODO: Need to account for change in parent, but where the parent has not changed x,y
     //in these cases, we want to translate the x,y position from the old coord into the new coord
-
     storeUpdate.fire({type: 'update-vertex', id: from, force: true});
     storeUpdate.fire({type: 'update-vertex', id: to, force: true});
   }
 
-  function hasChildren(id: StateIdType) : boolean {
+  function hasChildren(id: StateIdType): boolean {
     const s = childVertices.get(id);
     return s && s.length ? true : false;
   }
@@ -184,8 +238,8 @@ function Store(appBus: AppBus): Store {
 
   function calcEndPoints(edge: EdgeState): { x1: number, y1: number, x2: number, y2: number } {
     if (!edge) return;
-    const v1 = getVertex(edge.to);
-    const v2 = getVertex(edge.from);
+    const v1 = getCanvasBounds(edge.to); //getVertex(edge.to);
+    const v2 = getCanvasBounds(edge.from); //getVertex(edge.from);
     const ll = lineFromPoints(rectMidPoint(v2), rectMidPoint(v1));
     const {x1, y1} = clipLine(v2, ll);
     const {x2, y2} = clipLine(v1, ll);
@@ -233,7 +287,7 @@ function Store(appBus: AppBus): Store {
 
   function _getConnectedEdges(vertexId: StateIdType): StateIdType[] {
     const edges = vertexEdges.get(vertexId);
-    if (!edges || edges.length === 0) return <any> _emptyArray;
+    if (!edges || edges.length === 0) return <any>_emptyArray;
     return edges.map((e) => e.edgeId);
   }
 

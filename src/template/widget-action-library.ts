@@ -15,23 +15,26 @@ import {ParentSizeAction} from "template/actions/fill-parent";
 import {CanvasAction} from "template/actions/canvas";
 import {TranslateAction} from "template/actions/translate";
 import {PositionAction} from "template/actions/position";
+import {HeightAction} from "template/actions/height";
 
 export interface WidgetActionLibrary {
   get(name: string): WidgetActionFactory;
-  has(name: string) :boolean;
-  register(name: string, fn: WidgetActionFactory);
+
+  has(name: string): boolean;
 }
 
 export const WidgetActionLibraryModule = {
   $name: 'WidgetActionLibrary',
   $type: WidgetActionLibrary
 }
+
 function WidgetActionLibrary(): WidgetActionLibrary {
 
   const cache = [
     ParentSizeAction,
     BorderAction,
     WidthAction,
+    HeightAction,
     SizeAction,
     XyRatioAction,
     CxyRatioAction,
@@ -45,20 +48,17 @@ function WidgetActionLibrary(): WidgetActionLibrary {
     CanvasAction,
     TranslateAction,
     PositionAction
-  ].reduce((a, m) => a.set('data-' + m.$name, createActionModule(m.$ftype,m.$type)), new Map<string, WidgetActionCreator>());
+  ].reduce((a, m) => a.set('data-' + m.$name, createActionModule(m.$item, m.$type)), new Map<string, WidgetActionCreator>());
 
   return {
     get: (name: string) => cache.get(name),
-    has: (name: string) => cache.has(name),
-    register: (name: string, fn: WidgetActionFactory) => {
-      cache.set(name, fn);
-    }
+    has: (name: string) => cache.has(name)
   }
 }
 
 type WidgetActionCreator = (string) => WidgetTemplateAction
 
-function createActionModule(t: string, fn: Function) : WidgetActionCreator {
+function createActionModule(t: string, fn: Function): WidgetActionCreator {
   return t === 'expr'
     ? makeFactory(fn)
     : t === 'text'
@@ -68,9 +68,10 @@ function createActionModule(t: string, fn: Function) : WidgetActionCreator {
         : noop as WidgetActionCreator;
 }
 
-function noop(name: string) : WidgetTemplateAction {
+function noop(name: string): WidgetTemplateAction {
   console.log(`don't know how to create action type ${name}`);
-  return () => {};
+  return () => {
+  };
 }
 
 function ActionExpressionCache<T>(make: (string) => T) {
@@ -84,38 +85,17 @@ function ActionExpressionCache<T>(make: (string) => T) {
 }
 
 function makeTextFactory(fn: Function): WidgetActionCreator {
-  return ActionExpressionCache(make);
-  function make(expr: string) : WidgetTemplateAction {
-    const r = XCompiler.toContent(expr);
+  return ActionExpressionCache((expr: string) => {
+    const r = (new Compiler()).compileContent(expr);
     const c = (!r || r.isConstant() ? true : false);
-    return fn.call(null,
-      c,
-      c
-        ? r && r.eval(null)
-        : r.toFunction()
-    );
-  }
+    return fn.call(null, c, c ? r && r.eval(null) : r.toFunction());
+  });
 }
+
 function makeFactory(fn: Function): (string) => WidgetTemplateAction {
-  return ActionExpressionCache(make);
-
-  function make(expr: string): WidgetTemplateAction {
-    const r = XCompiler.toList(expr);
+  return ActionExpressionCache((expr: string) => {
+    const r = (new Compiler()).compileList(expr) || [];
     const c = (r.length === 0 || r.every((i) => i.isConstant()));
-    return fn.call(null,
-      c,
-      c
-        ? r && r.map((i) => i.eval(null))
-        : r.map((i) => i.toFunction())
-    );
-  }
+    return fn.call(null, c, c ? r && r.map((i) => i.eval(null)) : r.map((i) => i.toFunction()));
+  });
 }
-
-const XCompiler = {
-  toList: function toList(expr: string) {
-    return (new Compiler()).compileList(expr) || [];
-  },
-  toContent: function toExpr(expr: string) {
-    return (new Compiler()).compileContent(expr);
-  }
-};

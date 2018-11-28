@@ -1,13 +1,12 @@
 import {AppBus} from "bus/app-bus";
-import {ShadowWidgetFactory} from "modules/shadow-widget-factory";
-import {WidgetCanvas} from "modules/widget-canvas";
+import {ShadowWidgetFactory} from "template/shadow-widget-factory";
 import {clipLine} from "core/scalaclip";
 import {EdgeState, RectangleLike, State, VertexState} from "core/types";
 import {DragHandler, DragHandlerFactory, WidgetDragDropEvent, WidgetDragEvent, WidgetDragOverEvent} from "./types";
-import {ModelController} from "modules/model-controller";
+import {Graph} from "modules/graph";
 
 export const ConnectorDragHandlerModule = {
-  $inject: ['AppBus', 'ShadowWidgetFactory', 'WidgetCanvas','ModelController'],
+  $inject: ['AppBus', 'ShadowWidgetFactory','Graph'],
   $name: 'ConnectorDragHandler',
   $item: 'connector',
   $type: ConnectorDragHandler
@@ -16,8 +15,7 @@ export const ConnectorDragHandlerModule = {
 function ConnectorDragHandler(
   appBus: AppBus,
   createShadow: ShadowWidgetFactory,
-  canvas: WidgetCanvas,
-  model: ModelController
+  graph: Graph
 ): DragHandlerFactory {
 
   return (state: State, actionData: string, x: number, y: number, payload?: any) => {
@@ -25,10 +23,10 @@ function ConnectorDragHandler(
   }
 
   function createMover(sourceState: VertexState, x: number, y: number, cb: Function): DragHandler {
-    const source =  model.getVertexCanvasBounds(sourceState.id);
+    const source =  graph.getCanvasBounds(sourceState.id);
     let cx = source.x + (source.width / 2);
     let cy = source.y + (source.height / 2);
-    let widget = createShadow.create(clipLine(source, {x1: cx, y1: cy, x2: x, y2: y}), '$connector', 'tool');
+    let widget = createShadow.createEdge(clipLine(source, {x1: cx, y1: cy, x2: x, y2: y}), '$connector', 'tool');
     let target: RectangleLike = null;
 
     return {move, drop, cancel, over}
@@ -52,7 +50,7 @@ function ConnectorDragHandler(
     }
 
     function over(event: WidgetDragOverEvent) {
-      target = model.getVertexCanvasBounds(event.id);
+      target = graph.getCanvasBounds(event.id);
     }
 
     function cancel() {

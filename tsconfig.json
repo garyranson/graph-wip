@@ -33,6 +33,7 @@
       "mouse-handlers/*": [        "./mouse-handlers/*"      ],
       "core/*": [        "./core/*"      ],
       "template/*": [        "./template/*"      ],
+      "animate/*": [        "./animate/*"      ],
       "layout/*": [        "./layout/*"      ],
       "services/*": [        "./services/*"      ],
       "features/*": [        "./features/*"      ]

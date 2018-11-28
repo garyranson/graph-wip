@@ -71,7 +71,12 @@
   </widget>
   <widget id="$shape-highlight">
     <g class='po-highlight' data-translate>
-      <rect class="po-highlight__outline" data-border="5"></rect>
+      <rect class="po-highlight__outline" data-border="5" rx="9" ry="9"></rect>
+    </g>
+  </widget>
+  <widget id="$drag-highlight">
+    <g class='po-drag-highlight' data-translate>
+      <rect class="po-drag-highlight__outline" data-border="5" rx="9" ry="9"></rect>
     </g>
   </widget>
 
@@ -104,7 +109,32 @@
     <g class='po-connector'>
       <path class="po-connector__stroke" data-connector-path marker-mid="url(#dot)" marker-end="url(#arrow)" />
       <text class="po-connector__text" dy='1em' text-anchor='middle' data-connector-xy='50, 50, 50, 50'
-            data-text='[${x2},${y2}]'></text>
+            data-text-template='ppoint'></text>
     </g>
   </widget>
+
+  <widget id="$drag-cursor">
+    <g class='po-drag-cursor' data-translate>
+      <rect class="po-drag-cursor__outline" data-border="2" rx="9" ry="9"></rect>
+    </g>
+  </widget>
+
+  <widget id="$insert-cursor-left">
+    <g class='po-insert-cursor-left' data-translate>
+      <g class="po-insert-cursor-left__animate">
+        <rect class="po-insert-cursor-left__outline" x="0" y="0" width="5" data-height fill="red"></rect>
+        <use class='po-insert-cursor-left__arrow' href="#triangle-w" data-xy-ratio="0,0.5,0,-5"></use>
+      </g>
+    </g>
+  </widget>
+
+  <widget id="$insert-cursor-right">
+    <g class='po-insert-cursor-right' data-translate>
+      <g class="po-insert-cursor-right__animate" transform="translate(0,0)">
+        <rect class="po-insert-cursor-right__outline" data-xy-ratio="1,0,-5,0" width="5" data-height></rect>
+        <use class='po-insert-cursor-right__arrow' href="#triangle-e" data-xy-ratio="1.0, 0.5,-10,0"></use>
+      </g>
+    </g>
+  </widget>
+
 </svg>

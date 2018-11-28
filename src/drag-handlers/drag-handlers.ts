@@ -20,15 +20,15 @@ export const DragHandlersModule = {
 }
 function DragHandlers(create: InjectCreator, modules: Module[]): DragHandlers {
   const cache = modules.reduce(
-    (map,module) => map.set(module.$item, {action: "immediate", factory: create(module)}),
+    (map,module) => map.set(module.$item, {action: "deffered", factory: create(module)}),
     new Map<string, DragHandlerDefinition>()
   );
   return {
-    getAction: function getAction(action: string) : DragAction {
+    getAction: (action: string) => {
       const a = cache.get(action);
       return a?a.action:"none";
     },
-    getFactory: function get(action: string): DragHandlerFactory {
+    getFactory: (action: string) => {
       const f = cache.get(action);
       return f ? f.factory : undefined;
     }

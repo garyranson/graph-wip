@@ -1,3 +1,5 @@
+import {WidgetDragDropEvent, WidgetDragEvent} from "drag-handlers/types";
+
 export type StateIdType = string;
 
 export interface ShapeType {
@@ -9,10 +11,10 @@ export interface ShapeType {
   layoutManager?: string;
   returnType?: string;
   isSelectable?: boolean;
+  hasFeedback?: string;
 }
 
 export interface State {
-  $type: ShapeType;
   type: string;
   id: StateIdType;
   class: "vertex"|"edge";
@@ -22,6 +24,26 @@ export interface VertexState extends State, RectangleLike {
   class: "vertex";
   parent: StateIdType
 }
+
+
+export interface VertexMove {
+  action: "before"|"after"|"start"|"end",
+  id?: StateIdType
+}
+
+
+export interface DragFeedback {
+  destroy(): void;
+
+  drop(e: WidgetDragDropEvent): void;
+
+  move(e: WidgetDragEvent): void;
+}
+
+export interface DragFeedbackFactory {
+  (vertexId: StateIdType, overState: StateIdType): DragFeedback
+}
+
 
 export interface EdgeRouteLike {
   x1: number,
@@ -73,13 +95,6 @@ export interface BoundsLike {
   l: number;
   b: number;
   r: number;
-}
-
-
-export interface VectorLike {
-  x: number;
-  y: number;
-  z: number;
 }
 
 export interface SizeLike {

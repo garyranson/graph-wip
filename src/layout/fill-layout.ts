@@ -1,7 +1,7 @@
 import {SizeLike, VertexState} from "core/types";
-import {Store} from "modules/store";
+import {Graph} from "modules/graph";
 
-export function fillLayout(store: Store, container: VertexState, children: VertexState[]): SizeLike {
+export function fillLayout(graph: Graph, container: VertexState, children: VertexState[]): SizeLike {
   return children
     ? children.reduce((a, c: VertexState) => {
       if (c.x + c.width > a.width) a.width = c.x + c.width;

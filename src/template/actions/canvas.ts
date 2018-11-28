@@ -3,7 +3,7 @@ import {RectangleLike} from "core/types";
 export const CanvasAction = {
   $type: canvasActionFactory,
   $name: 'canvas',
-  $ftype: 'self'
+  $item: 'self'
 }
 
 function canvasActionFactory() {

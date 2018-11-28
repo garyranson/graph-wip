@@ -1,7 +1,7 @@
 import {SizeLike, VertexState} from "core/types";
-import {Store} from "modules/store";
+import {Graph} from "modules/graph";
 
-export function flowLayout(store: Store, container: VertexState, children: VertexState[]): SizeLike {
+export function flowLayout(graph: Graph, container: VertexState, children: VertexState[]): SizeLike {
   if (!children || !children.length) return;
   let x = 10;
   let y = 10;
@@ -19,7 +19,7 @@ export function flowLayout(store: Store, container: VertexState, children: Verte
       c = 0;
       h = 0;
     }
-    store.updateVertex({...v, x, y});
+    graph.updateVertex({...v, x, y});
     if (x + v.width > maxx) maxx = x + v.width;
     if (v.height > h) h = v.height;
     x += v.width + 10;

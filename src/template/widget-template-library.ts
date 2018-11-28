@@ -4,7 +4,7 @@ import {State} from "core/types";
 
 export interface WidgetTemplateLibrary {
   get(name: string): WidgetTemplate;
-  create(state: State): Widget;
+  create<T extends State>(state: T): Widget<T>;
   register(name: string, template: WidgetTemplate);
 }
 
@@ -20,7 +20,7 @@ function WidgetTemplateLibrary() : WidgetTemplateLibrary {
     return cache.get(name) || cache.get('default');
   }
 
-  function create(state: State): Widget {
+  function create<T extends State>(state: T): Widget<T> {
     try {
       return get(state.type).createWidget(state);
     }

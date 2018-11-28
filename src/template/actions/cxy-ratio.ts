@@ -4,7 +4,7 @@ import {CompiledFunction} from "expression-compiler";
 export const CxyRatioAction = {
   $type: CxyRatioFactory,
   $name: 'cxy-ratio',
-  $ftype: 'expr'
+  $item: 'expr'
 }
 
 function CxyRatioFactory(constant: boolean,args: []) {

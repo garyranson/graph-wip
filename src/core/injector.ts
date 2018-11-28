@@ -1,13 +1,9 @@
 export interface Module {
-  $type: Function,
+  $type: (...any) => any,
   $name?: string,
   $params?: any[],
   $inject?: any[],
   $item?: string,
-  $payload?: any,
-  $constant?: any,
-  $ftype?:string,
-  $expr?:any
 }
 
 export function defineModule(type: Module, ...args): Module {
@@ -15,15 +11,9 @@ export function defineModule(type: Module, ...args): Module {
 }
 
 export interface Injector {
-  define(...modules: Module[]): Injector;
-
-  init(...modules: Module[]): Injector;
-
+  define(...modules: Module[]): this;
+  init(...modules: Module[]): this;
   get<T>(name: string): T;
-
-  run(fn: (get: <T>(name: string) => T) => void): Injector,
-
-  map<T>(fn: (m: Module) => T): T[]
 }
 
 export type InjectCreator = <T>(string) => T;
@@ -41,23 +31,11 @@ function InternalInjector(m: Module[], locker: Locker, parent?: { [key: string]:
     define(...modules: Module[]): Injector {
       return InternalInjector(modules, locker, getters);
     },
-    init(this: Injector, ...modules: Module[]): Injector {
+    init(...modules: Module[]): Injector {
       if (modules) modules.forEach(create);
       return this;
     },
-    get,
-    run(this: Injector, fn: (get: <T>(name: string) => T) => void): Injector {
-      fn.call(this, get);
-      return this;
-    },
-    map<T>(fn: (m:Module) => T) : T[] {
-      const a = [];
-      for(let i in modules) {
-        if(!modules.hasOwnProperty(i)) continue;
-        a.push(fn.call(this,modules[i]));
-      }
-      return a;
-    }
+    get
   }
 
   function get<T>(this: Injector, type: string): any {

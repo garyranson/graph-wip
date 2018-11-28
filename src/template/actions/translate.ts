@@ -3,7 +3,7 @@ import {RectangleLike} from "core/types";
 export const TranslateAction = {
   $type: translateFactory,
   $name: 'translate',
-  $ftype: 'self',
+  $item: 'self',
   $constant: translateFactory
 }
 

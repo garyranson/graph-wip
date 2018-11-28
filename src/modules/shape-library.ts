@@ -43,16 +43,19 @@ export function ShapeLibrary() {
         minumumSize: {width: 0, height: 0},
         maximumSize: {width: Number.MAX_SAFE_INTEGER, height: Number.MAX_SAFE_INTEGER},
         canContain: ['select', 'container','default'],
+        isSelectable: true,
         layoutManager: null,
         returnType: null,
+        hasFeedback: 'flow'
       },
       {
         name: "$node-root",
         parent: "object",
         minumumSize: {width: 0, height: 0},
         maximumSize: {width: Number.MAX_SAFE_INTEGER, height: Number.MAX_SAFE_INTEGER},
-        canContain: ['object'],
+        canContain: ['object','container','shape','default','select'],
         layoutManager: null,
+        hasFeedback: 'simple',
         returnType: null
       },
       {
@@ -63,13 +66,14 @@ export function ShapeLibrary() {
         canContain: ['select', 'container', 'default'],
         layoutManager: null,
         returnType: null,
-        isSelectable: false,
+        isSelectable: true,
+        hasFeedback: 'flow'
       },
       {
         name: "default",
         parent: 'shape',
         minumumSize: {width: 120, height: 80},
-        maximumSize: {width: 240, height: 90},
+        maximumSize: {width: 240, height: 160},
         canContain: null,
         layoutManager: null,
         returnType: null,

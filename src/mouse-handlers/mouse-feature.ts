@@ -1,37 +1,20 @@
 import {AppBus} from "bus/app-bus";
-import {emptyLocator, WidgetLocator} from "modules/widget-locator";
+import {emptyLocator, WidgetLocator} from "template/widget-locator";
 import {DiagramInitEvent} from "bus/diagram-bus";
 import {WidgetAttributes} from "core/types";
-import {Store} from "modules/store";
-import {WidgetCanvas} from "modules/widget-canvas";
+import {WidgetController} from "template/widget-controller";
 
 export const MouseFeatureModule = {
   $type: MouseFeature,
-  $inject: ['AppBus','WidgetLocator','Store','WidgetCanvas'],
+  $inject: ['AppBus','WidgetLocator','WidgetController'],
   $name: 'MouseFeature'
 }
 function MouseFeature(
   appBus: AppBus,
   finder: WidgetLocator,
-  store: Store,
-  canvas: WidgetCanvas
+  canvas: WidgetController
 ) {
   let el : Element;
-  /*function onPointerDown(e: PointerEvent) : void {
-   // e.preventDefault();
-    console.log(`type:${e.type} ${e.pointerType} press:${e.pressure}  id:${e.pointerId}`);
-    el.setPointerCapture(e.pointerId);
-  }
-  function onPointerMove(e: PointerEvent) : void {
-    e.preventDefault();
-    console.log(`type:${e.type} ${e.pointerType} press:${e.pressure}`);
-  }
-  function onPointerUp(e: PointerEvent) : void {
-    e.preventDefault();
-    console.log(`type:${e.type} ${e.pointerType} press:${e.pressure}`);
-    el.releasePointerCapture(e.pointerId);
-  }
-*/
 
   function onMouseDown(e: MouseEvent): void {
     e.preventDefault();
@@ -39,7 +22,7 @@ function MouseFeature(
     const currentNodeAttributes = ensureOver(e.target as Element);
     const mpt = canvas.pointAt(e.clientX, e.clientY);
 
-    appBus.nodeTrigger.fire({
+    appBus.widgetActionTrigger.fire({
       type: 'mousedown',
       x: mpt.x,
       y: mpt.y,
@@ -60,7 +43,7 @@ function MouseFeature(
 
     const mpt = canvas.pointAt(e.clientX, e.clientY);
 
-    appBus.nodeClick.fire({
+    appBus.widgetClick.fire({
       type: e.type,
       clickCount: (e.type == 'click') ? 1 : 2,
       x: mpt.x,
@@ -87,7 +70,7 @@ function MouseFeature(
 
   function ensureOver(element: Element): WidgetAttributes {
     const attrs = finder(element) || emptyLocator;
-    appBus.nodeEnterLeave.fire({enter: attrs.id})
+    appBus.widgetEnterLeave.fire({enter: attrs.id})
     return attrs;
   }
 
@@ -98,11 +81,6 @@ function MouseFeature(
   let init = appBus.diagramInit.add((e: DiagramInitEvent) => {
     const container = e.container;
     el = container;
-/*
-    container.addEventListener("pointerdown", onPointerDown);
-    container.addEventListener("pointermove", onPointerMove);
-    container.addEventListener("pointerup", onPointerUp);
-*/
     container.addEventListener("mousedown", onMouseDown);
     container.addEventListener("mouseup", onMouseUp);
     container.addEventListener("mouseout", onMouseEnter);

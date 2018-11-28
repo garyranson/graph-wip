@@ -1,7 +1,7 @@
 export const ConnectorAction = {
   $type: connectorFactory,
   $name: 'connector',
-  $ftype: 'self'
+  $item: 'self'
 }
 
 function connectorFactory() {

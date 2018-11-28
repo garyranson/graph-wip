@@ -1,6 +1,6 @@
 import {loader} from "core/loaders";
 import {AppBus} from "bus/app-bus";
-import {Container} from "modules/container-initialiser";
+import {Container} from "template/container-initialiser";
 import {defineModule, Injector} from "core/injector";
 import {DemoTemplatesModule} from "../demo-templates";
 

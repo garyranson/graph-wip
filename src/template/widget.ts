@@ -1,26 +1,20 @@
 import {WidgetExecFactory} from "./types";
-import {State} from "core/types";
+import {State, VertexState} from "core/types";
 
-export interface Widget  {
-  state: State;
-  appendChild(child: Widget): void;
-  remove(): void;
-  getElement<T extends Element>() : T;
-  refresh(state: State) : this;
-  mergeState(state: object) : this;
-  addClass(name: string) : this;
-  removeClass(name: string) : this;
-  setAttribute(name: string, value: any) : this;
-}
-export class VertexWidget implements Widget  {
-  public state: State;
+export class Widget<T extends State>   {
+  public state: T;
   public container: Element;
+  public linked: Widget<State>[];
 
   constructor(private element: Element, private mappedElements: Element[], private exec: WidgetExecFactory) {
     this.container = element.querySelector('[data-class-config]') || element;
   }
 
-  appendChild(child: Widget) {
+  getState() : T {
+    return this.state;
+  }
+
+  appendChild(child: Widget<T>) {
     if (!child) return;
     this.container.appendChild(child.getElement());
   }
@@ -33,29 +27,49 @@ export class VertexWidget implements Widget  {
     return this.element as T;
   }
 
-  refresh(state: State) : this {
+  addLinkedWidget(widget: Widget<VertexState>): void {
+    this.linked = this.linked ? this.linked.concat(widget) : [widget];
+  }
+
+  removeLinkedWidget(widget: Widget<VertexState>): void {
+    if (!this.linked) return;
+    if (this.linked.length === 1) {
+      if (this.linked[0] !== widget) return;
+      this.linked = null;
+      return;
+    }
+    this.linked = this.linked.filter((i) => i === widget);
+  }
+
+
+  refresh(this: Widget<T>, state: T) : Widget<T> {
     this.exec(state, this.mappedElements);
     this.state = state;
+    if(this.linked) this.linked.forEach((w) => w.refresh(state));
     return this;
   }
 
-  mergeState(state: object) : this {
-    this.state = {...this.state, ...state}
+  mergeState(state: T) : Widget<T> {
+    this.state = {...(this.state as object), ...(state as object)} as T;
     return this;
   }
 
-  addClass(name: string) : this {
+  addClass(name: string) : Widget<T> {
     this.element.classList.add(name);
     return this;
   }
 
-  removeClass(name: string) : this {
+  removeClass(name: string) : Widget<T> {
     this.element.classList.remove(name);
     return this;
   }
 
-  setAttribute(name: string, value: any) : this {
+  setAttribute(name: string, value: any) : Widget<T> {
     this.element.setAttribute(name,value);
     return this;
+  }
+
+  getBoundingBox() : ClientRect | DOMRect {
+    return this.element.getBoundingClientRect();
   }
 }

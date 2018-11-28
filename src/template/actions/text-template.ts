@@ -1,10 +1,10 @@
-import {RectangleLike} from "core/types";
+import {LineLike, RectangleLike} from "core/types";
 import {computeAngle} from "core/geometry";
 
 export const TextTemplateAction = {
   $type: textTemplateFactory,
   $name: 'text-template',
-  $ftype: 'self'
+  $item: 'self'
 }
 
 function textTemplateFactory(expr: string) {
@@ -17,7 +17,10 @@ function formatInvalid(el: SVGElement): void {
 
 const formatLibrary = {
   point: (el: SVGElement, gp: RectangleLike): void => {
-    el.textContent = `[${gp.x},${gp.y}]`;
+    el.textContent = `[${Math.round(gp.x)},${Math.round(gp.y)}]`;
+  },
+  ppoint: (el: SVGElement, gp: LineLike): void => {
+    el.textContent = `[${Math.round(gp.x1)},${Math.round(gp.y1)}]`;
   },
   size: (el: SVGElement, gp: RectangleLike): void => {
     el.textContent = `[${gp.width},${gp.height}]`;

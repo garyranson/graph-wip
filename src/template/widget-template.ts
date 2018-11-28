@@ -1,15 +1,15 @@
 import {WidgetExecFactory, WidgetTemplateAction} from "./types";
 import {widgetActionReducer} from "./widget-action-reducer";
-import {VertexWidget, Widget} from "template/widget";
-import {State, VertexState} from "core/types";
+import {Widget} from "template/widget";
+import {State} from "core/types";
 import {WidgetActionLibrary} from "template/widget-action-library";
 
 export interface WidgetTemplate {
-  createWidget(state: State): Widget;
+  createWidget<T extends State>(state: T): Widget<T>;
 }
 
 export interface WidgetTemplateService {
-  create(markup: string | Element): WidgetTemplate;
+  create(markup: Element): WidgetTemplate;
 }
 
 export const WidgetTemplateServiceModule = {
@@ -26,27 +26,25 @@ function WidgetTemplateService(actions: WidgetActionLibrary): WidgetTemplateServ
     create
   }
 
-  function create(svg: string | Element): WidgetTemplate {
-    const root = typeof svg === 'string' ? parseSvg(svg) : parseEl(svg);
+  function create(svg: Element): WidgetTemplate {
+    const root = parseEl(svg);
     const instructions = compileActions(root);
     const template = finalizeElement(root);
     const factory = getFactory(instructions)(instructions);
 
     return {
-      createWidget
-    };
-
-    function createWidget(vertex: VertexState): Widget {
-      return internalCreateWidget(
-        template.cloneNode(true) as Element,
-        instructions,
-        vertex.id,
-        factory
-      ).refresh(vertex);
+      createWidget: function createWidget<T extends State>(state: T): Widget<T> {
+        return internalCreateWidget<T>(
+          template.cloneNode(true) as Element,
+          instructions,
+          state.id,
+          factory
+        ).refresh(state);
+      }
     }
   }
 
-  function internalCreateWidget(root: Element, instructions: WidgetTemplateAction[], vertexId: any, execFactory: WidgetExecFactory): Widget {
+  function internalCreateWidget<T extends State>(root: Element, instructions: WidgetTemplateAction[], vertexId: any, execFactory: WidgetExecFactory) {
 
     root.setAttribute('pxnode', vertexId);
 
@@ -54,7 +52,7 @@ function WidgetTemplateService(actions: WidgetActionLibrary): WidgetTemplateServ
       .from(root.querySelectorAll('[pxaction]'))
       .forEach((node: Element) => node.setAttribute('pxnode', vertexId));
 
-    return (new VertexWidget(
+    return (new Widget<T>(
       root,
       getMappedElements(root),
       execFactory,
@@ -241,16 +239,6 @@ function mapElements<T>(root: Element, fn: (el: Element) => T): T[] {
     if (rc) a.push(rc);
   }
   return a;
-}
-
-function parseSvg(svg: string): Element {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="__root__">${svg}</svg>`, 'text/html');
-  const root = doc.getElementById("__root__");
-  root.normalize();
-//Remove comments
-  getCommentNodes(root).forEach(n => n.parentNode.removeChild(n));
-  return root;
 }
 
 function parseEl(root: Element): Element {

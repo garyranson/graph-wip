@@ -3,7 +3,7 @@ import {CompiledFunction} from "expression-compiler";
 export const BorderAction = {
   $type: borderFactory,
   $name: 'border',
-  $ftype: 'expr',
+  $item: 'expr',
 }
 
 function borderFactory(constant: boolean,args: any[]) {

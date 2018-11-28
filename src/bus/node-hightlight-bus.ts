@@ -1,22 +1,21 @@
 import {createDelegate, ExceptionCallback, EventDelegate} from "core/event-delegate";
 import {WidgetActionClickEvent, WidgetActionEvent} from "drag-handlers/types";
 
-export interface NodeEnterLeaveEvent {
+export interface WidgetEnterLeaveEvent {
   enter: string;
 }
 
-
 export interface NodeHighlightBus {
-  nodeTrigger: EventDelegate<WidgetActionEvent>;
-  nodeClick: EventDelegate<WidgetActionClickEvent>;
-  nodeEnterLeave: EventDelegate<NodeEnterLeaveEvent>;
+  widgetActionTrigger: EventDelegate<WidgetActionEvent>;
+  widgetClick: EventDelegate<WidgetActionClickEvent>;
+  widgetEnterLeave: EventDelegate<WidgetEnterLeaveEvent>;
 }
 
 export function createNodeHighlightBus (callback?: ExceptionCallback) : NodeHighlightBus {
   return {
-    nodeTrigger: createDelegate<WidgetActionEvent>(callback),
-    nodeClick: createDelegate<WidgetActionClickEvent>(callback),
-    nodeEnterLeave: createDelegate<NodeEnterLeaveEvent>(callback),
+    widgetActionTrigger: createDelegate<WidgetActionEvent>(callback),
+    widgetClick: createDelegate<WidgetActionClickEvent>(callback),
+    widgetEnterLeave: createDelegate<WidgetEnterLeaveEvent>(callback),
   }
 }
 

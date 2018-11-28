@@ -1,5 +1,5 @@
 import {AppBus} from "bus/app-bus";
-import {ShadowWidgetFactory} from "modules/shadow-widget-factory";
+import {ShadowWidgetFactory} from "template/shadow-widget-factory";
 import {RectangleLike, State, VertexState} from "core/types";
 import {DragHandler, DragHandlerFactory, WidgetDragEvent} from "./types";
 
@@ -21,7 +21,7 @@ function LassoDragHandler(appBus: AppBus, shadowFactory: ShadowWidgetFactory): D
   }
 
   function createLasso(vertex: VertexState, x: number, y: number): DragHandler {
-    const widget = shadowFactory.create(vertex, '$lasso', 'tool');
+    const widget = shadowFactory.createVertex(vertex, '$lasso', 'tool');
 
     return {move, drop, cancel}
 
