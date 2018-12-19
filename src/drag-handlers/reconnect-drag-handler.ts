@@ -1,40 +1,39 @@
 import {AppBus} from "bus/app-bus";
 import {getLine} from "core/scalaclip";
-import {RectangleLike, State, StateIdType, VertexState} from "core/types";
+import {EdgeState, RectangleLike, State, StateIdType, VertexState} from "core/types";
 import {DragHandler, DragHandlerFactory, WidgetDragDropEvent, WidgetDragEvent, WidgetDragOverEvent} from "./types";
 import {Graph} from "modules/graph";
 import {OrthConnector} from "layout/orthogonal";
 import {calcOrientatedLine} from "core/geometry";
 import {ViewController} from "template/view-controller";
 
-export const ConnectorDragHandlerModule = {
+export const ReconnectDragHandlerModule = {
   $inject: ['AppBus', 'ViewController', 'Graph'],
-  $name: 'ConnectorDragHandler',
-  $item: 'connector',
-  $type: ConnectorDragHandler
+  $name: 'ReconnectDragHandler',
+  $item: 'reconnect',
+  $type: ReconnectDragHandler
 }
 
-function ConnectorDragHandler(
+function ReconnectDragHandler(
   appBus: AppBus,
   canvas: ViewController,
   graph: Graph
 ): DragHandlerFactory {
   return (state: State, actionData: string, x: number, y: number) => {
-    const port = parseInt(actionData);
-    return createMover(state as VertexState, x, y, port || port === 0 ? port : undefined);
+    return createMover(state as EdgeState, x, y, actionData);
   }
 
-  function createMover(sourceState: VertexState, x: number, y: number, sourcePortIndex: number): DragHandler {
-    const source = graph.getCanvasBounds(sourceState.id);
-    const ports = sourceState && sourceState.__meta && sourceState.__meta.ports;
-    const sourceId = sourceState.id;
-    let targetId: StateIdType;
-    let targetPortIndex = -1;
-    let i = ports && ports[sourcePortIndex];
-    let cx = source.x + ((i ? i[0] : 0.5) * source.width);
-    let cy = source.y + ((i ? i[0] : 0.5) * source.height);
+  function createMover(state: EdgeState, x: number, y: number, actionData: string): DragHandler {
+    const source = graph.getCanvasBounds(actionData === 'from' ? state.from : state.to);
+//    const floatState = graph.getVertex(actionData==='from'?state.from:state.to);
+//    const ports = floatState && floatState.__meta && floatState.__meta.ports;
 
-    let widget = canvas.createToolWidget('$connector', getLine(source, null, {x1: cx, y1: cy, x2: x, y2: y}));
+    let targetId = state.to;
+    let sourceId = state.from;
+    let targetPortIndex = state.targetPortIndex;
+    let sourcePortIndex = state.sourcePortIndex;
+
+    let widget = canvas.createToolWidget('$connector', {...state});
     let target: RectangleLike = null;
 
     return {
@@ -53,7 +52,7 @@ function ConnectorDragHandler(
         appBus.createEdge.fire({
           eventType: 'create/edge',
           id: targetId,
-          from: sourceState.id,
+          from: state.id,
           to: e.id,
           sourcePortIndex,
           targetPortIndex
@@ -92,7 +91,10 @@ function ConnectorDragHandler(
     }
 
     function createState(t: RectangleLike): object {
-      const l = calcOrientatedLine(source, t);
+      const l = (actionData === 'from')
+        ? calcOrientatedLine(source, t)
+        : calcOrientatedLine(t, source)
+
       const se = graph.getPort(sourceId, sourcePortIndex);
       const te = target ? graph.getPort(targetId, targetPortIndex) : null;
 

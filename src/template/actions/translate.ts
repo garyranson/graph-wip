@@ -12,5 +12,7 @@ function translateFactory() {
 }
 
 function translateAction(el: SVGGraphicsElement, gp: RectangleLike): void {
+  if(!gp)
+    console.log('here');
   el.setAttribute("transform", `translate(${gp.x},${gp.y})`);
 }

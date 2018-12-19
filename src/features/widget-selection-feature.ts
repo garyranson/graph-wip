@@ -3,10 +3,12 @@ import {StateIdType} from "core/types";
 import {WidgetActionClickEvent} from "drag-handlers/types";
 import {ModelConstraints} from "modules/constraints";
 import {Graph} from "modules/graph";
+import {Widget} from "template/widget";
+import {CursorManager} from "template/cursor-manager";
 
 export const WidgetSelectionFeatureModule = {
   $type: WidgetSelectionFeature,
-  $inject: ['AppBus', 'Graph', 'ModelConstraints'],
+  $inject: ['AppBus', 'Graph', 'ModelConstraints','CursorManager'],
   $name: 'WidgetSelectionFeature'
 }
 
@@ -14,8 +16,9 @@ function WidgetSelectionFeature(
   appBus: AppBus,
   graph: Graph,
   constraints: ModelConstraints,
+  cursorManager: CursorManager
 ) {
-  const selected = new Set<StateIdType>();
+  const selected = new Map<StateIdType, Widget>();
 
   let nodeClick = appBus.widgetClick.add((e: WidgetActionClickEvent) => {
 
@@ -43,32 +46,27 @@ function WidgetSelectionFeature(
   });
 
   function clear(): void {
-    Array.from(selected).forEach(off);
+    Array.from(selected.keys()).forEach(off);
   }
 
   function off(id: StateIdType) {
-    if (!selected.has(id)) return;
+    const w = selected.get(id);
+    if (!w) return;
     selected.delete(id);
-    fire(id, 'off');
+    cursorManager.releaseLinked('$node-select', w, id);
   }
 
   function on(id: StateIdType) {
-    if (selected.has(id)) return;
-    selected.add(id);
-    fire(id, 'on');
+    const w = selected.get(id);
+    if (w) return;
+    selected.set(
+      id,
+      cursorManager.createLinked('$node-select', id).removeClass('px-off')
+    );
   }
 
   function toggle(id: StateIdType) {
     if (selected.has(id)) off(id);
     else on(id);
-  }
-
-  function fire(id: StateIdType, selectionState: "on" | "off") {
-    appBus.widgetSelection.fire({
-      type: 'selection',
-      id,
-      bounds: graph.getCanvasBounds(id),
-      selectionState
-    })
   }
 }

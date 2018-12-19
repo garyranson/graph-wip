@@ -1,6 +1,6 @@
 import {AppBus} from "bus/app-bus";
 import {StoreBusEvent} from "bus/store-bus";
-import {WidgetController} from "template/widget-controller";
+import {ViewController} from "template/view-controller";
 import {StateIdType} from "core/types";
 import {Graph} from "modules/graph";
 import {TreeBuilder} from "features/tree-builder";
@@ -8,13 +8,13 @@ import {LayoutManager} from "layout/layout-manager";
 
 export const ModelViewBridgeModule = {
   $type: ModelViewBridge,
-  $inject: ['AppBus', 'WidgetController', 'Graph', 'TreeBuilder', 'LayoutManager'],
+  $inject: ['AppBus', 'ViewController', 'Graph', 'TreeBuilder', 'LayoutManager'],
   $name: 'ModelViewBridge'
 }
 
 function ModelViewBridge(
   appBus: AppBus,
-  canvas: WidgetController,
+  canvas: ViewController,
   graph: Graph,
   treeBuilder: TreeBuilder,
   layout: LayoutManager
@@ -28,7 +28,7 @@ function ModelViewBridge(
   let removeState: Set<StateIdType>;
   let forceState: Set<StateIdType>;
 
-  const {applyDeferred, refreshWidget, removeWidget} = canvas;
+  const {applyDeferred, refreshVertexWidget, refreshEdgeWidget, removeWidget} = canvas;
 
   initialise();
 
@@ -74,6 +74,7 @@ function ModelViewBridge(
   function fire() {
 
     if (updateVertex) {
+      console.log('bulding refresh tree');
       layout(
         treeBuilder(
           Array.from(updateVertex),
@@ -83,28 +84,28 @@ function ModelViewBridge(
     }
 
     inprocess = true;
-
+console.log('refreshing compoents');
     try {
-/*
-      appBus.canvasRefresh.fire({
-        edges: updateEdge,
-        vertices: updateVertex,
-        removes: removeState
-      });
-*/
-      if (updateVertex) updateVertex.forEach(refreshW);
-      if (updateEdge) updateEdge.forEach(refreshW);
+      if (updateVertex) updateVertex.forEach((w) => console.log(`model:${JSON.stringify(w)}`));
+      if (updateVertex) updateVertex.forEach(_refreshVertexWidget);
+      if (updateEdge) updateEdge.forEach(_refreshEdgeWidget);
       if (removeState) removeState.forEach(removeWidget);
       applyDeferred();
     }
     finally {
+      console.log('....component refresh complete pre init');
       initialise();
+      console.log('....component refresh complete post init');
     }
   }
 
-  function refreshW(id: string) {
-    refreshWidget(graph.getState(id));
+  function _refreshVertexWidget(id: string) {
+    refreshVertexWidget(graph.getState(id));
   }
+  function _refreshEdgeWidget(id: string) {
+    refreshEdgeWidget(graph.getState(id));
+  }
+
 
   function initialise() {
     updateVertex = null;

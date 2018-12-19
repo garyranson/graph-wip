@@ -4,18 +4,17 @@ import {BorderAction} from "template/actions/border";
 import {WidthAction} from "template/actions/width";
 import {SizeAction} from "template/actions/size";
 import {XyRatioAction} from "template/actions/xy-ratio";
-import {CxyRatioAction} from "template/actions/cxy-ratio";
 import {ConnectorAction} from "template/actions/connector";
 import {TextAction} from "template/actions/text";
-import {BoundsAction} from "template/actions/bounds";
 import {TextTemplateAction} from "template/actions/text-template";
 import {ConnectorXyAction} from "template/actions/connector-xy";
 import {ConnectorPathAction} from "template/actions/connector-path";
 import {ParentSizeAction} from "template/actions/fill-parent";
 import {CanvasAction} from "template/actions/canvas";
 import {TranslateAction} from "template/actions/translate";
-import {PositionAction} from "template/actions/position";
 import {HeightAction} from "template/actions/height";
+import {AlignAction} from "template/actions/connector-align";
+import {PortAction} from "template/actions/port";
 
 export interface WidgetActionLibrary {
   get(name: string): WidgetActionFactory;
@@ -30,6 +29,8 @@ export const WidgetActionLibraryModule = {
 
 function WidgetActionLibrary(): WidgetActionLibrary {
 
+  const odc = OnDemandCompiler();
+
   const cache = [
     ParentSizeAction,
     BorderAction,
@@ -37,18 +38,17 @@ function WidgetActionLibrary(): WidgetActionLibrary {
     HeightAction,
     SizeAction,
     XyRatioAction,
-    CxyRatioAction,
     ConnectorAction,
     TextAction,
-    BoundsAction,
     TextTemplateAction,
     ConnectorAction,
     ConnectorXyAction,
     ConnectorPathAction,
     CanvasAction,
     TranslateAction,
-    PositionAction
-  ].reduce((a, m) => a.set('data-' + m.$name, createActionModule(m.$item, m.$type)), new Map<string, WidgetActionCreator>());
+    AlignAction,
+    PortAction
+  ].reduce((a, m) => a.set('data-' + m.$name, createActionModule(odc, m.$item, m.$type)), new Map<string, WidgetActionCreator>());
 
   return {
     get: (name: string) => cache.get(name),
@@ -56,16 +56,18 @@ function WidgetActionLibrary(): WidgetActionLibrary {
   }
 }
 
-type WidgetActionCreator = (string) => WidgetTemplateAction
+type WidgetActionCreator = (string, elementType?: string) => WidgetTemplateAction
 
-function createActionModule(t: string, fn: Function): WidgetActionCreator {
+function createActionModule(odc: () => Compiler, t: string, fn: Function): WidgetActionCreator {
   return t === 'expr'
-    ? makeFactory(fn)
+    ? makeExprFactory(fn)
     : t === 'text'
-      ? makeTextFactory(fn)
-      : t === 'self'
-        ? fn as WidgetActionCreator
-        : noop as WidgetActionCreator;
+      ? makeTextFactory(odc, fn)
+      : t === 'split'
+        ? makeSplitFactory(fn)
+        : t === 'self'
+          ? fn as WidgetActionCreator
+          : noop as WidgetActionCreator;
 }
 
 function noop(name: string): WidgetTemplateAction {
@@ -74,28 +76,60 @@ function noop(name: string): WidgetTemplateAction {
   };
 }
 
-function ActionExpressionCache<T>(make: (string) => T) {
+function ActionExpressionCache<T>(make: (string, elementType?: string) => T) {
   const cache = new Map<string, T>();
-  return function (expr: string): T {
+  return function (expr: string, elementType: string): T {
     if (cache.has(expr)) return cache.get(expr);
-    const m = make(expr);
+    const m = make(expr, elementType);
     cache.set(expr, m);
     return m;
   }
 }
 
-function makeTextFactory(fn: Function): WidgetActionCreator {
-  return ActionExpressionCache((expr: string) => {
-    const r = (new Compiler()).compileContent(expr);
+function makeTextFactory(odc: () => Compiler, fn: Function): WidgetActionCreator {
+  return ActionExpressionCache((expr: string, elementType?: string) => {
+    const r = odc().compileContent(expr);
     const c = (!r || r.isConstant() ? true : false);
-    return fn.call(null, c, c ? r && r.eval(null) : r.toFunction());
+    return fn.call(null, c, c ? r && r.eval(null) : r.toFunction(), elementType);
   });
 }
 
-function makeFactory(fn: Function): (string) => WidgetTemplateAction {
-  return ActionExpressionCache((expr: string) => {
+function makeExprFactory(fn: Function): WidgetActionCreator {
+  return ActionExpressionCache((expr: string, elementType?: string) => {
     const r = (new Compiler()).compileList(expr) || [];
     const c = (r.length === 0 || r.every((i) => i.isConstant()));
-    return fn.call(null, c, c ? r && r.map((i) => i.eval(null)) : r.map((i) => i.toFunction()));
+    return fn.call(
+      null,
+      c,
+      c ? r && r.map((i) => i.eval(null))
+        : r.map((i) => i.toFunction())
+      , elementType
+    );
   });
+}
+
+function makeSplitFactory(fn: Function): WidgetActionCreator {
+  return ActionExpressionCache((expr: string, elementType?: string) => {
+    return fn.call(
+      null,
+      expr.trim().split(/(?:\s+[,]?\s*)|,\s*/).map((s) => s.toLowerCase().trim()),
+      elementType
+    );
+  });
+}
+
+const OnDemandCompiler = function () {
+  let c: Compiler;
+  let t: number;
+
+  return function (): Compiler {
+    if (t) clearTimeout(t);
+    t = setTimeout(kill, 5000);
+    return c ? c : (c = new Compiler());
+  }
+
+  function kill() {
+    c = null;
+    t = 0;
+  }
 }

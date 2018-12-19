@@ -10,13 +10,13 @@ export interface ModelLoader {
   load(doc: any):void;
 }
 
-export function ModelLoader(model: ModelController,doc: any): ModelLoader {
+export function ModelLoader(model: ModelController): ModelLoader {
 
   return {
     load(doc: any) {
-      const root = model.createRoot(null, doc.model.type);
+      const rootId = model.createRoot(doc.model.type);
       doc.model.vertices.forEach((v) => {
-        model.createVertex(v.id, v.type, {x: v.x, y: v.y, width: v.width, height: v.height}, v.parent || root.id);
+        model.createVertex(v.id, v.type, {x: v.x, y: v.y, width: v.width, height: v.height}, v.parent || rootId);
       });
       return model;
     }

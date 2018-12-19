@@ -13,7 +13,7 @@ export interface ShapeLibrary {
   register(name: string, type: ShapeType): ShapeType;
 }
 
-export function ShapeLibrary() {
+function ShapeLibrary() {
   const cache = new Map<string, ShapeType>();
 
   const t =
@@ -68,6 +68,18 @@ export function ShapeLibrary() {
         returnType: null,
         isSelectable: true,
         hasFeedback: 'flow'
+      },
+
+      {
+        name: "$connector",
+        parent: 'container',
+        minumumSize: {width: 80, height: 120},
+        maximumSize: {width: Number.MAX_SAFE_INTEGER, height: Number.MAX_SAFE_INTEGER},
+        canContain: null,
+        layoutManager: null,
+        returnType: null,
+        isSelectable: true,
+        hasFeedback: null
       },
       {
         name: "default",

@@ -12,6 +12,8 @@
     ],
     "sourceMap": true,
     "allowJs": false,
+    "jsx": "react",
+    "jsxFactory": "PxState",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "moduleResolution": "node",

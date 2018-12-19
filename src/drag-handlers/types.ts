@@ -8,6 +8,8 @@ export interface WidgetDragEvent {
   dy: number;
   canvasX: number;
   canvasY: number;
+  action: string;
+  actionData: string;
 }
 
 

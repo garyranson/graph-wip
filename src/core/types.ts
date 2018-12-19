@@ -14,15 +14,20 @@ export interface ShapeType {
   hasFeedback?: string;
 }
 
+export interface StateMeta {
+  ports: number[][];
+}
+
 export interface State {
   type: string;
   id: StateIdType;
-  class: "vertex"|"edge";
+  class: "vertex" | "edge";
+  __meta?: StateMeta;
 }
 
 export interface VertexState extends State, RectangleLike {
   class: "vertex";
-  parent: StateIdType
+  parent: StateIdType,
 }
 
 
@@ -50,7 +55,7 @@ export interface EdgeRouteLike {
   y1: number,
   x2: number,
   y2: number,
-  route?: [];
+  route?: PointLike[];
 }
 
 export interface EdgeState extends State, EdgeRouteLike {
@@ -58,6 +63,8 @@ export interface EdgeState extends State, EdgeRouteLike {
   to: StateIdType
   class: "edge";
   callback?: any;
+  sourcePortIndex?: number;
+  targetPortIndex?: number;
 }
 
 

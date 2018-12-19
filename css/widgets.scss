@@ -10,6 +10,12 @@
   font-size: 12pt;
 }
 
+.px-drag * {
+  pointer-events: none !important;
+  opacity: 0.5;
+}
+
+
 .pw-container {
   pointer-events: none;
 
@@ -28,7 +34,7 @@
     stroke-dasharray: 35;
     stroke-dashoffset: -125;
     stroke-linecap: butt;
-    transition:  stroke 250ms ease-out, opacity 250ms ease-out,fill 250ms ease-in-out,stroke-dashoffset 250ms ease-out, stroke-dasharray 250ms ease-out;
+    transition: stroke 250ms ease-out, opacity 250ms ease-out, fill 250ms ease-in-out, stroke-dashoffset 250ms ease-out, stroke-dasharray 250ms ease-out;
   }
 
   &__text {
@@ -55,7 +61,7 @@
     fill: blue;
     stroke: black;
     pointer-events: all;
-    transition:  stroke 250ms ease-out, opacity 250ms ease-out,fill 250ms ease-in-out,stroke-dashoffset 250ms ease-out, stroke-dasharray 250ms ease-out;
+    transition: stroke 250ms ease-out, opacity 250ms ease-out, fill 250ms ease-in-out, stroke-dashoffset 250ms ease-out, stroke-dasharray 250ms ease-out;
   }
 
   &__text {
@@ -116,11 +122,27 @@
     stroke-width: 3px;
     stroke-dasharray: 10;
   }
+
+  &__connector  {
+    pointer-events: visible;
+    fill: red;
+    stroke-width: 2px;
+   // transition: all 200ms ease-out;
+//    transform-origin: center center;
+  }
+
+  &__connector:hover  {
+    //transform: scale(1.5);
+    stroke-width: 5px;
+    fill:magenta;
+  }
 }
 
-.po-drag-highlight  {
+.po-drag-highlight {
   pointer-events: none;
   opacity: 1;
+
+  transition: opacity 200ms ease-in-out;
 
   &.px-off {
     opacity: 0;
@@ -136,13 +158,13 @@
 }
 
 
-
 .po-resize {
   pointer-events: none;
   opacity: 1;
 
   &.px-off {
     opacity: 0;
+    visibility: hidden;
   }
 
   &__outline {
@@ -151,6 +173,7 @@
     stroke-opacity: 0.5;
     stroke-width: 3px;
   }
+
   &__text {
   }
 }
@@ -158,12 +181,15 @@
 .po-drag-drop {
   pointer-events: none;
 
+
+
   &__outline {
     fill: none;
     stroke: darkorange;
     stroke-opacity: 0.5;
     stroke-width: 4px;
   }
+
   &__text {
   }
 }
@@ -183,6 +209,7 @@
     stroke-opacity: 0.5;
     stroke-width: 3px;
   }
+
   &__text {
   }
 }
@@ -190,22 +217,83 @@
 .po-connector {
   pointer-events: none;
 
-  &__stroke {
-    stroke: red;
-    fill: none;
-    stroke-width: 3px;
-  }
+
   &__text {
+    pointer-events: none;
   }
+
+  &__stroke {
+    stroke: gray;
+    fill: none;
+    stroke-width: 1pt;
+    pointer-events: none;
+  }
+
+  &__start,
+  &__end,
+  &__mid {
+    pointer-events: visible;
+    fill: black;
+    stroke: none;
+  }
+
+  &__start:hover,
+  &__end:hover,
+  &__mid:hover {
+    fill: red;
+    stroke: none;
+  }
+
+
+  /*
+  &.px-hover > &__stroke {
+    stroke: red;
+  }
+
+  &.px-hover > &__start,
+  &.px-hover > &__end,
+  &.px-hover > &__mid {
+    fill: red;
+    stroke: red;
+  }
+  */
 }
 
-.po-select {
+.po-connector-highlight {
   pointer-events: none;
-  transition: opacity 250ms ease-in-out;
   opacity: 1;
+  transition: opacity 200ms ease-in-out;
 
   &.px-off {
     opacity: 0;
+  }
+
+  &__stroke {
+    stroke: blue;
+    fill: none;
+    pointer-events: none;
+  }
+
+  &__start,
+  &__end,
+  &__mid {
+    pointer-events: none;
+    fill: blue;
+    stroke: none;
+  }
+
+}
+
+
+.po-select {
+  pointer-events: none;
+  transition: all 250ms ease-in-out;
+  opacity: 1;
+  visibility: visible;
+
+  &.px-off {
+    opacity: 0;
+    visibility: hidden;
   }
 
   &__border {
@@ -222,10 +310,15 @@
     pointer-events: all;
   }
 
+
   &__connector {
-    fill: red;
-    pointer-events: all;
+    fill: green;
+    pointer-events: visible;
   }
+  &__connector:hover {
+    fill: blue;
+  }
+
 }
 
 
@@ -243,13 +336,13 @@
 }
 
 
-$ease: cubic-bezier(.2,1,.3,1);
+$ease: cubic-bezier(.2, 1, .3, 1);
 
 .po-insert-cursor-right {
   pointer-events: none;
   opacity: 0.5;
 
-  transition: opacity 250ms ease-in-out;
+  transition: all 250ms ease-in-out;
 
   &.px-off {
     opacity: 0;
@@ -267,11 +360,13 @@ $ease: cubic-bezier(.2,1,.3,1);
 .po-insert-cursor-left {
   pointer-events: none;
   opacity: 0.5;
+  visibility: visible;
 
-  transition: opacity 250ms ease-in-out;
+  transition: all 250ms ease-in-out;
 
   &.px-off {
     opacity: 0;
+    visibility: hidden;
   }
 
   &__outline {
@@ -308,6 +403,3 @@ $ease: cubic-bezier(.2,1,.3,1);
     transform: translateX(0);
   }
 }
-
-
-

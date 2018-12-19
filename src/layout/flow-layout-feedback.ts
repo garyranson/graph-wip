@@ -1,56 +1,56 @@
 import {BoundsLike, DragFeedback, DragFeedbackFactory, StateIdType, VertexMove, VertexState} from "core/types";
 import {WidgetDragDropEvent, WidgetDragEvent} from "drag-handlers/types";
-import {ModelBusMoveNodeEvent} from "bus/model-bus";
 import {Graph} from "modules/graph";
 import {AppBus} from "bus/app-bus";
+import {ModelBusMoveNodeEvent} from "bus/model-bus";
+import {Widget} from "template/widget";
+import {CursorManager} from "template/cursor-manager";
 
 export const FlowFeedbackModule = {
   $type: FlowFeedbackModuleImpl,
-  $inject: ['AppBus', 'Graph'],
+  $inject: ['AppBus', 'Graph', 'CursorManager'],
   $item: 'flow'
 }
 
-function FlowFeedbackModuleImpl(appBus: AppBus, graph: Graph) : DragFeedbackFactory {
+function FlowFeedbackModuleImpl(appBus: AppBus, graph: Graph, cm: CursorManager): DragFeedbackFactory {
+
   return function (vertexId: StateIdType, overState: StateIdType): DragFeedback {
     return FlowLayoutFeedback(vertexId, overState);
   }
 
   function FlowLayoutFeedback(vertexId: StateIdType, overState: StateIdType): DragFeedback {
-
     const vertices = graph.getChildVertices(overState);
     const offset = graph.getCanvasBounds(overState);
+    let left: Widget;
+    let right: Widget;
+
 
     const grid = buildGrid(vertices);
     let over = -1;
 
     return {
-      destroy: clear,
-      drop,
-      move
-    }
+      drop(e: WidgetDragDropEvent) {
+        const index = getInsertId(e.canvasX, e.canvasY);
+        if (!index) return;
+        appBus.moveNode.fire({
+          id: vertexId,
+          eventType: 'move',
+          index,
+          target: overState
+        } as ModelBusMoveNodeEvent);
+      },
 
-    function drop(e: WidgetDragDropEvent) {
-      const index = getInsertId(e.canvasX, e.canvasY);
-      if(!index) return;
-      appBus.moveNode.fire({
-        id: vertexId,
-        eventType: 'move',
-        index,
-        target: overState
-      } as ModelBusMoveNodeEvent);
-    }
-
-    function move(e: WidgetDragEvent) {
-      const i = findPos(e.canvasX, e.canvasY);
-      if (over === i) return;
-      _setCursor(over, 'off');
-      _setCursor(i, 'on');
-      over = i;
-    }
-
-    function clear() {
-      if (over !== -1) {
+      move(e: WidgetDragEvent) {
+        const i = findPos(e.canvasX, e.canvasY);
+        if (over === i) return;
         _setCursor(over, 'off');
+        _setCursor(i, 'on');
+        over = i;
+      },
+
+      destroy() {
+        cm.release('$insert-cursor-left', left, overState);
+        cm.release('$insert-cursor-right', right, overState);
       }
     }
 
@@ -96,34 +96,20 @@ function FlowFeedbackModuleImpl(appBus: AppBus, graph: Graph) : DragFeedbackFact
       const g = grid[i];
 
       if (rect) {
-        appBus.widgetSelection.fire({
-          type: 'hover',
-          template: '$insert-cursor-left', //'$drag-cursor',
-          selectionState: state,
-          bounds: {
-            x: offset.x + rect.x,
-            y: offset.y + rect.y,
-            width: rect.width,
-            height: rect.height
-          },
-          id: 'left'
-        });
+        if (!left) left = cm.create('$insert-cursor-left', overState);
+        left
+          .refresh({x: offset.x + rect.x, y: offset.y + rect.y, width: rect.width, height: rect.height})
+          .addClass(state === 'off' ? 'px-off' : null)
+          .removeClass(state === 'on' ? 'px-off' : null);
       }
 
       const r = g ? vertices[i - 1] : vertices[vertices.length - 1];
       if (r) {
-        appBus.widgetSelection.fire({
-          type: 'hover',
-          template: '$insert-cursor-right', //'$drag-cursor',
-          selectionState: state,
-          bounds: {
-            x: offset.x + r.x,
-            y: offset.y + r.y,
-            width: r.width,
-            height: r.height
-          },
-          id: 'right'
-        });
+        if (!right) right = cm.create('$insert-cursor-right', overState);
+        right
+          .refresh({x: offset.x + r.x, y: offset.y + r.y, width: r.width, height: r.height})
+          .addClass(state === 'off' ? 'px-off' : null)
+          .removeClass(state === 'on' ? 'px-off' : null);
       }
     }
   }
@@ -182,4 +168,6 @@ function FlowFeedbackModuleImpl(appBus: AppBus, graph: Graph) : DragFeedbackFact
     }
     return rc;
   }
+
+
 }

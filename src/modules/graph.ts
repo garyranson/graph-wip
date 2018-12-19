@@ -1,7 +1,7 @@
-import {EdgeState, RectangleLike, State, StateIdType, VertexMove, VertexState} from "core/types";
+import {EdgeState, LineLike, PointLike, RectangleLike, State, StateIdType, StateMeta, VertexMove, VertexState} from "core/types";
 import {AppBus} from "bus/app-bus";
-import {clipLine} from "core/scalaclip";
-import {lineFromPoints, rectMidPoint} from "core/geometry";
+import {OrthConnector} from "layout/orthogonal";
+import {calcOrientatedLine} from "core/geometry";
 
 export interface Graph {
   getEdge(id: StateIdType): EdgeState;
@@ -33,6 +33,12 @@ export interface Graph {
   getRootId(): StateIdType;
 
   getCanvasBounds(id: StateIdType): RectangleLike;
+
+  getClass(id: StateIdType): string;
+
+  getMeta(id: StateIdType): StateMeta;
+
+  getPort(id: StateIdType, portIndex: number) : number[];
 }
 
 export const StoreModule = {
@@ -41,6 +47,7 @@ export const StoreModule = {
   $name: 'Graph'
 }
 const _emptyArray = Object.freeze([]);
+//const _centrePoint = Object.freeze([0.5, 0.5]);
 
 type EdgeDirection = "in" | "out";
 
@@ -82,22 +89,44 @@ function Graph(appBus: AppBus): Graph {
     getParentId,
     getRootId,
     getCanvasBounds,
+    getClass,
+    getMeta,
+    getPort,
+  }
+
+
+  function getClass(id: StateIdType): string {
+    const cs = getState(id);
+    return cs ? cs.class : 'unknown';
   }
 
   function getCanvasBounds(id: StateIdType): RectangleLike {
-    let s = getVertex(id);
-    if (!s) return {x: 0, y: 0, width: 0, height: 0};
-    let x = 0;
-    let y = 0;
-    let w = s.width;
-    let h = s.height;
+    if(!id) return;
+    const cs = getState(id);
+    if (!cs) return {x: 0, y: 0, width: 0, height: 0};
 
-    while (s.parent) {
-      x += s.x;
-      y += s.y;
-      s = getVertex(s.parent);
+    if (cs.class === 'vertex') {
+      let s = cs as VertexState;
+      let x = 0;
+      let y = 0;
+      let w = s.width;
+      let h = s.height;
+
+      while (s.parent) {
+        x += s.x;
+        y += s.y;
+        s = getVertex(s.parent);
+      }
+      return {x, y, width: w, height: h};
+    } else {
+      let s = cs as EdgeState;
+      const x1 = Math.min(s.x1, s.x2);
+      const y1 = Math.min(s.y1, s.y2);
+      const x2 = Math.max(s.x1, s.x2);
+      const y2 = Math.max(s.y1, s.y2);
+
+      return {x: x1, y: y1, width: x2 - x1, height: y2 - y1}
     }
-    return {x, y, width: w, height: h};
   }
 
   function getRootId(): StateIdType {
@@ -107,6 +136,12 @@ function Graph(appBus: AppBus): Graph {
   function getState<T extends State>(id): T {
     return states.get(id) as T;
   }
+
+  function getMeta(id: StateIdType): StateMeta {
+    const o = states.get(id) as VertexState;
+    return o ? o.__meta : undefined;
+  }
+
 
   function getParentId(id: StateIdType): StateIdType {
     const s = states.get(id) as VertexState;
@@ -174,8 +209,8 @@ function Graph(appBus: AppBus): Graph {
     if (id === move.id) return; // no change
     const children = childVertices.get(parent);
     if (!children) return; // should not happen
-    const newlist = _move(children,id,move);
-    if (!newlist || newlist === children)      return;
+    const newlist = _move(children, id, move);
+    if (!newlist || newlist === children) return;
     childVertices.set(parent, newlist);
     storeUpdate.fire({type: 'update-vertex', id: parent, force: true});
   }
@@ -187,15 +222,15 @@ function Graph(appBus: AppBus): Graph {
     switch (move.action) {
       case 'end':
         if (children[children.length - 1] === id) return children;
-        s.splice(children.length,0,id);
+        s.splice(children.length, 0, id);
         return s;
       case 'start':
         if (children[0] === id) return children;
         s.splice(0, 0, id);
         return s;
       case 'after':
-        if (children[p+1] === id) return children;
-        s.splice(p+1, 0, id);
+        if (children[p + 1] === id) return children;
+        s.splice(p + 1, 0, id);
         return s;
       case 'before':
         if (children[p - 1] === id) return children;
@@ -217,7 +252,7 @@ function Graph(appBus: AppBus): Graph {
       childVertices.delete(from);
 
     let nv = childVertices.get(to) || [];
-    childVertices.set(to, _move(nv, child, move?move:{action:'end'}));
+    childVertices.set(to, _move(nv, child, move ? move : {action: 'end'}));
     //TODO: Need to account for change in parent, but where the parent has not changed x,y
     //in these cases, we want to translate the x,y position from the old coord into the new coord
     storeUpdate.fire({type: 'update-vertex', id: from, force: true});
@@ -232,19 +267,43 @@ function Graph(appBus: AppBus): Graph {
   function recalcEdge(ed: EdgeDef) {
     const edge = getEdge(ed.edgeId);
     const rc = calcEndPoints(edge);
-    if (!rc) return;
-    updateEdge({...edge, ...rc});
+    if(rc) updateEdge({...edge, ...rc});
   }
 
-  function calcEndPoints(edge: EdgeState): { x1: number, y1: number, x2: number, y2: number } {
+
+  function getPort(id: StateIdType, se: number) : number[] {
+    const sm = getMeta(id);
+    const pp = (sm && sm.ports);
+    return pp && (se || se === 0) ? pp[se] : null;
+  }
+
+  function calcEndPoints(edge: EdgeState): LineLike | { route?: PointLike[] } {
     if (!edge) return;
-    const v1 = getCanvasBounds(edge.to); //getVertex(edge.to);
-    const v2 = getCanvasBounds(edge.from); //getVertex(edge.from);
-    const ll = lineFromPoints(rectMidPoint(v2), rectMidPoint(v1));
-    const {x1, y1} = clipLine(v2, ll);
-    const {x2, y2} = clipLine(v1, ll);
-    if (x1 === edge.x1 && y1 === edge.y1 && x2 === edge.x2 && y2 === edge.y2) return;
-    return {x1, y1, x2, y2};
+    const t = getCanvasBounds(edge.to);
+    const s = getCanvasBounds(edge.from);
+
+    const l = calcOrientatedLine(s, t); //{x: (t.x + (t.width / 2)) - 10, y: (t.y + (t.height / 2)) - 10, width: 20, height: 20});
+    const se = getPort(edge.from,edge.sourcePortIndex);
+    const te = getPort(edge.to,edge.targetPortIndex);
+
+    return OrthConnector(
+      {
+        x1: se?(s.x + (se[0] * s.width)):l.x1,
+        y1: se?(s.y + (se[1] * s.height)):l.y1,
+        x2: te?(t.x + (te[0] * t.width)):l.x2,
+        y2: te?(t.y + (te[1] * t.height)):l.y2,
+      },
+      s,
+      t
+    );
+
+    /* if (o) {
+       return o;
+     } else {
+       const ll = getLine(source, target, lineFromPoints(rectMidPoint(source), rectMidPoint(target)));
+       if (ll.x1 !== edge.x1 || ll.y1 !== edge.y1 || ll.x2 !== edge.x2 || ll.y2 !== edge.y2)
+         return ll;
+     }*/
   }
 
   function removeVertex(id: StateIdType, includeEdges?: boolean): void {

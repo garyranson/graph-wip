@@ -4,7 +4,6 @@ export type WidgetLocator = (node: Element) => WidgetAttributes;
 
 export const WidgetLocatorModule = {
   $type: WidgetLocator,
-  $inject: [],
   $name: 'WidgetLocator'
 }
 
@@ -40,4 +39,8 @@ function WidgetLocator(): WidgetLocator {
   }
 }
 
-export const emptyLocator = Object.freeze({id: null, action: null, data: null});
+export const emptyLocator = Object.freeze({
+  id: null,
+  action: null,
+  data: null
+});

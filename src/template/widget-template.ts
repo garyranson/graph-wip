@@ -1,11 +1,11 @@
 import {WidgetExecFactory, WidgetTemplateAction} from "./types";
 import {widgetActionReducer} from "./widget-action-reducer";
 import {Widget} from "template/widget";
-import {State} from "core/types";
+import {StateIdType} from "core/types";
 import {WidgetActionLibrary} from "template/widget-action-library";
 
 export interface WidgetTemplate {
-  createWidget<T extends State>(state: T): Widget<T>;
+  createWidget(type: string, id: StateIdType): Widget;
 }
 
 export interface WidgetTemplateService {
@@ -23,40 +23,42 @@ const emptyArray = Object.freeze([]);
 function WidgetTemplateService(actions: WidgetActionLibrary): WidgetTemplateService {
 
   return {
-    create
+    create(svg: Element): WidgetTemplate {
+      const root = parseEl(svg);
+      return createIt(
+        compileActions(root),
+        finalizeElement(root)
+      );
+    }
   }
 
-  function create(svg: Element): WidgetTemplate {
-    const root = parseEl(svg);
-    const instructions = compileActions(root);
-    const template = finalizeElement(root);
-    const factory = getFactory(instructions)(instructions);
-
+  function createIt(instructions, template) {
+    let factory;
     return {
-      createWidget: function createWidget<T extends State>(state: T): Widget<T> {
-        return internalCreateWidget<T>(
-          template.cloneNode(true) as Element,
+      createWidget: function createWidget(type: string, widgetId?: StateIdType): Widget {
+        return internalCreateWidget(
+          type,
+          createClone(template, widgetId),
           instructions,
-          state.id,
-          factory
-        ).refresh(state);
+          factory || (factory = getFactory(instructions))
+        );
       }
     }
   }
 
-  function internalCreateWidget<T extends State>(root: Element, instructions: WidgetTemplateAction[], vertexId: any, execFactory: WidgetExecFactory) {
+  function createClone(template, vertexId?: StateIdType): Element {
+    const root = template.cloneNode(true) as Element;
+    if (vertexId) {
+      root.setAttribute('pxnode', vertexId);
+      Array
+        .from(root.querySelectorAll('[pxaction]'))
+        .forEach((node: Element) => node.setAttribute('pxnode', vertexId));
+    }
+    return root;
+  }
 
-    root.setAttribute('pxnode', vertexId);
-
-    Array
-      .from(root.querySelectorAll('[pxaction]'))
-      .forEach((node: Element) => node.setAttribute('pxnode', vertexId));
-
-    return (new Widget<T>(
-      root,
-      getMappedElements(root),
-      execFactory,
-    ));
+  function internalCreateWidget(type: string,root: Element, instructions: WidgetTemplateAction[], execFactory: WidgetExecFactory) {
+    return (new Widget(type, root, getMappedElements(root), execFactory));
   }
 
   function compileActions(root: Element): WidgetTemplateAction[] {
@@ -72,7 +74,7 @@ function WidgetTemplateService(actions: WidgetActionLibrary): WidgetTemplateServ
     }).map(widgetActionReducer);
   }
 
-  function _compile(attr:Attr) : WidgetTemplateAction {
+  function _compile(attr: Attr): WidgetTemplateAction {
     const f = actions.get(attr.name);
     return f(attr.value);
   }
@@ -123,8 +125,13 @@ function getMappedAttrs(root: Element): Attr[] {
   return q;
 }
 
-function getFactory(instructions: WidgetTemplateAction[]): (instructions: WidgetTemplateAction[]) => (o: object, a: Element[]) => void {
-  switch (instructions.length) {
+
+function getFactory(instructions: WidgetTemplateAction[]): (gp: object, e: Element[]) => void {
+  return getFactoryFunction(instructions.length)(instructions);
+}
+
+function getFactoryFunction(length: number): Function {
+  switch (length) {
     case 0:
       return r0;
     case 1:

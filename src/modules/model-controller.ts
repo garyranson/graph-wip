@@ -1,15 +1,15 @@
 import {AppBus} from "bus/app-bus";
 import {ModelBusCreateEdgeEvent, ModelBusMoveNodeEvent, ModelBusResizeNodeEvent} from "bus/model-bus";
-import {EdgeState, RectangleLike, StateIdType, VertexMove, VertexState} from "core/types";
+import {RectangleLike, StateIdType, VertexMove} from "core/types";
 import {Graph} from "modules/graph";
 import {IdGenerator} from "modules/id-generator";
 
 export interface ModelController {
-  createRoot(id: StateIdType,type: string): VertexState;
+  createRoot(type: string): StateIdType;
 
-  createVertex(id: StateIdType,type: string, rect: RectangleLike, parent: StateIdType): VertexState;
+  createVertex(id: StateIdType, type: string, rect: RectangleLike, parent: StateIdType): void;
 
-  createEdge(type: string, from: StateIdType, to: StateIdType): EdgeState;
+  createEdge(type: string, from: StateIdType, to: StateIdType, sourcePortIndex: number, targetPortIndex: number): void;
 
   removeVertex(id: StateIdType): void;
 
@@ -22,6 +22,19 @@ export const ModelControllerModule = {
   $name: 'ModelController'
 }
 
+const ports = [
+  [0.5,0],
+  [1,0.5],
+  [0.5,1],
+  [0,0.5]
+];
+
+const __meta = {
+  ports : ports,
+  minSize: {width:120, height:80},
+  maxSize: {width:999, height:999}
+};
+
 function ModelController(
   appBus: AppBus,
   graph: Graph,
@@ -30,18 +43,21 @@ function ModelController(
 
   appBus.moveNode.add((ne: ModelBusMoveNodeEvent) => vertexMove(ne.id, ne.x, ne.y, ne.target, ne.index));
   appBus.resizeNode.add((ne: ModelBusResizeNodeEvent) => vertexResize(ne.id, ne.bounds));
-  appBus.createEdge.add((ne: ModelBusCreateEdgeEvent) => createEdge('$connector', ne.from, ne.to));
+  appBus.createEdge.add((ne: ModelBusCreateEdgeEvent) => createEdge('$connector', ne.from, ne.to, ne.sourcePortIndex, ne.targetPortIndex));
 
-  function createRoot(id: StateIdType, type: string): VertexState {
-    return graph.createRoot({x: 0, y: 0, width: 0, height: 0, id: id||createId.create(), type, parent: null, class: "vertex"})
+  function createRoot(type: string): StateIdType {
+    const id = createId.create();
+    graph.createRoot({x: 0, y: 0, width: 0, height: 0, id, type, parent: null, class: "vertex"})
+    return id;
   }
 
-  function createVertex(id: StateIdType, type: string, rect: RectangleLike, parent: StateIdType): VertexState {
-    return graph.createVertex({...rect, id: id||createId.create(), type, parent, class: "vertex"})
+  function createVertex(id: StateIdType, type: string, rect: RectangleLike, parent: StateIdType): void {
+    graph.createVertex({...rect, id: id||createId.create(), type, parent, class: "vertex", __meta})
   }
 
-  function createEdge(type: string, from: StateIdType, to: StateIdType): EdgeState {
-    return graph.createEdge({type, id: createId.create(), from, to, x1: 0, y1: 0, x2: 0, y2: 0, class: "edge"});
+  function createEdge(type: string, from: StateIdType, to: StateIdType, sourcePortIndex: number, targetPortIndex: number): void {
+    const e = graph.createEdge({type, id: createId.create(), from, to, x1: 0, y1: 0, x2: 0, y2: 0, class: "edge", sourcePortIndex, targetPortIndex});
+    console.log('creating edge:'+JSON.stringify(e));
   }
 
   function vertexResize(vertexId: StateIdType, bounds: RectangleLike) {

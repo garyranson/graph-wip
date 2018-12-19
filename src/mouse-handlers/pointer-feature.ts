@@ -4,12 +4,12 @@ import {DiagramInitEvent} from "bus/diagram-bus";
 import {WidgetAttributes} from "core/types";
 import {ViewController} from "template/view-controller";
 
-export const MouseFeatureModule = {
-  $type: MouseFeature,
+export const PointerFeatureModule = {
+  $type: PointerFeature,
   $inject: ['AppBus','WidgetLocator','ViewController'],
   $name: 'MouseFeature'
 }
-function MouseFeature(
+function PointerFeature(
   appBus: AppBus,
   finder: WidgetLocator,
   canvas: ViewController
@@ -70,7 +70,7 @@ function MouseFeature(
 
   function ensureOver(element: Element): WidgetAttributes {
     const attrs = finder(element) || emptyLocator;
-    console.log(`over:${JSON.stringify(attrs)}`);
+    console.log('enterleave:'+attrs.id);
     appBus.widgetEnterLeave.fire({enter: attrs.id})
     return attrs;
   }
@@ -82,9 +82,9 @@ function MouseFeature(
   let init = appBus.diagramInit.add((e: DiagramInitEvent) => {
     const container = e.container;
     el = container;
-    container.addEventListener("mousedown", onMouseDown);
-    container.addEventListener("mouseup", onMouseUp);
-    container.addEventListener("mouseout", onMouseEnter);
+    container.addEventListener("pointerdown", onMouseDown);
+    container.addEventListener("pointerup", onMouseUp);
+    container.addEventListener("pointerout", onMouseEnter);
     container.addEventListener("click", mouseClick);
     container.addEventListener("dblclick", mouseClick);
     container.addEventListener("contextmenu", ignoreEvent);
@@ -92,9 +92,9 @@ function MouseFeature(
 
   let destroy = appBus.diagramDestroy.add((e: DiagramInitEvent) => {
     const container = e.container;
-    container.removeEventListener("mousedown", onMouseDown);
-    container.removeEventListener("mouseup", onMouseUp);
-    container.removeEventListener("mouseout", onMouseEnter);
+    container.removeEventListener("pointerdown", onMouseDown);
+    container.removeEventListener("pointerup", onMouseUp);
+    container.removeEventListener("pointerout", onMouseEnter);
     container.removeEventListener("click", mouseClick);
     container.removeEventListener("dblclick", mouseClick);
     container.removeEventListener("contextmenu", ignoreEvent);

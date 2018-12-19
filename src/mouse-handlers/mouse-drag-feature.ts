@@ -3,25 +3,24 @@ import {emptyLocator, WidgetLocator} from "template/widget-locator";
 import {DragHandlers} from "drag-handlers/drag-handlers";
 import {Graph} from "modules/graph";
 import {DragHandler, WidgetActionEvent, WidgetDragEvent} from "drag-handlers/types";
-import {WidgetController} from "template/widget-controller";
+import {ViewController} from "template/view-controller";
 import {Container} from "template/container-initialiser";
 
 export const MouseDragFeatureModule = {
   $type: MouseDragFeature,
-  $inject: ['AppBus', 'WidgetLocator', 'WidgetController', 'DragHandlers', 'Graph', 'Container'],
+  $inject: ['AppBus', 'WidgetLocator', 'ViewController', 'DragHandlers', 'Graph', 'Container'],
   $name: 'MouseDragFeature'
 }
 
 function MouseDragFeature(
   appBus: AppBus,
   finder: WidgetLocator,
-  canvas: WidgetController,
+  canvas: ViewController,
   dragHandlers: DragHandlers,
   graph: Graph,
-  containerO: Container
+  container: Container
 ) {
   let eventData: WidgetActionEvent;
-  const container = containerO.get();
   let currentNodeAttributes = emptyLocator;
   let dragHandler: DragHandler = null;
   let dragMagic: DragMagic;
@@ -36,7 +35,7 @@ function MouseDragFeature(
     activateImmediate();
     appBus.widgetEnterLeave.fire(); // Removes hightlights
     e && e.element && ensureOver(e.element);
-    containerO.setCursor("px-drag-over");
+    container.setCursor("px-drag-over");
   });
 
   const destroy = appBus.diagramDestroy.add(() => {
@@ -64,9 +63,10 @@ function MouseDragFeature(
     e.preventDefault();
     e.stopPropagation();
     ensureOver(e.relatedTarget as Element);
+    console.log(`over:${JSON.stringify(currentNodeAttributes)}`);
     if (dragHandler.over) {
       const feedback = dragHandler.over(createEventData(e));
-      feedback && containerO.setCursor(feedback);
+      feedback && container.setCursor(feedback);
     }
   }
 
@@ -91,7 +91,7 @@ function MouseDragFeature(
   }
 
   function mouseLeave(e: MouseEvent) {
-    dragMagic = DragMagic(container);
+    dragMagic = DragMagic(container.get());
   }
 
   function mouseEnter(e: MouseEvent) {
@@ -118,7 +118,7 @@ function MouseDragFeature(
   }
 
   function deactivateImmediate() {
-    containerO.setCursor(null);
+    container.setCursor(null);
     document.body.classList.remove('px-cursor-override');
     document.removeEventListener("mouseup", onMouseUp, true);
     document.removeEventListener("mousemove", onMouseMove, true);
@@ -142,6 +142,8 @@ function MouseDragFeature(
       y: mpt.y - vo.y,
       dx: mpt.x - eventData.x,
       dy: mpt.y - eventData.y,
+      actionData: currentNodeAttributes.data,
+      action: currentNodeAttributes.action,
       canvasX: mpt.x,
       canvasY: mpt.y,
     };
@@ -155,20 +157,24 @@ interface DragMagic {
 }
 
 function DragMagic(container: Element): DragMagic {
-  const timer = setInterval(tick, 200);
+  let timer : number;
   const bb = container.getBoundingClientRect();
+  let dx = 0;
+  let dy = 0;
 
   return {
     release() {
       clearInterval(timer);
     },
     move(e: MouseEvent) {
-      container.scrollTop += (e.clientY < bb.top) ? -4 : (e.clientY > bb.bottom) ? 4 : 0;
-      container.scrollLeft += (e.clientX < bb.left) ? -4 : (e.clientX > bb.right) ? 4 : 0;
+      if (!timer) timer = setInterval(tick, 200);
+      dy = (e.clientY < bb.top) ? -4 : (e.clientY > bb.bottom) ? 4 : 0;
+      dx = (e.clientX < bb.left) ? -4 : (e.clientX > bb.right) ? 4 : 0;
     }
   }
 
   function tick() {
-    // console.log('tick');
+    container.scrollLeft += dx;
+    container.scrollTop += dy;
   }
 }

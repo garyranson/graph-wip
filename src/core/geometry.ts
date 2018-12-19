@@ -66,3 +66,85 @@ export function computeAngle(p1: PointLike,p2: PointLike) : number {
   const result = Math.atan2((p1.y - p2.y), (p2.x - p1.x)) * 180/Math.PI;
   return (result < 0) ? (360 + result) : result;
 }
+
+
+
+
+
+
+
+interface RectangleOrientation {
+  t: boolean;
+  l: boolean;
+  tl: boolean;
+  tr: boolean;
+  bl: boolean;
+  br: boolean;
+  b: boolean;
+  r: boolean;
+  mask: number;
+  offsets: number[];
+}
+
+const orientation: RectangleOrientation[] = [
+  [0,0,0,0],
+  [1, 0.5, 0, 0.5],//1 0001 ...R R M L M
+  [0.5, 1, 0.5, 0],//2 0010 ..B. M B M T
+  [1, 0.5, 0.5, 0],//3 0011 ..BR R M M T
+  [0, 0.5, 1, 0.5],//4 0100 .L.. L M R M
+  ,
+  [0, 0.5, 0.5, 0],//6 0110 .LB. L M M T
+  ,
+  [0.5, 0, 0.5, 1],//8 1000 T... M T M B
+  [1, 0.5, 0.5, 1],//9 1001 T..R R M M B
+  ,//a
+  ,//b
+  [0, 0.5, 0.5, 1],//c 1100 TL.. L M M B
+].map((offsets, mask) => {
+  return offsets
+    ? Object.freeze({
+      t: (mask & 0b1000) > 0,
+      l: (mask & 0b0100) > 0,
+      b: (mask & 0b0010) > 0,
+      r: (mask & 0b0001) > 0,
+      tl: (mask & 0b1100) === 0b1100,
+      tr: (mask & 0b1001) === 0b1001,
+      bl: (mask & 0b0110) === 0b0110,
+      br: (mask & 0b0011) === 0b0011,
+      mask,
+      offsets
+    }) : undefined;
+});
+
+export function getOrientation(source: RectangleLike, target: RectangleLike): RectangleOrientation {
+  return orientation[(
+    /*T*/ (((target.y + target.height) <= (source.y)) ? 8 : 0) |
+    /*L*/ (((target.x + target.width) <= (source.x)) ? 4 : 0) |
+    /*B*/ (((target.y) >= (source.y + source.height)) ? 2 : 0) |
+    /*R*/ (((target.x) >= (source.x + source.width)) ? 1 : 0)
+  )];
+}
+
+export function calcOrientatedLine(s: RectangleLike, t: RectangleLike): LineLike {
+  // TODO: Adjust for Jetty size rather than hard-code the 20.
+  const o = getOrientation(s, t);
+
+  return {
+    x1: s.x + (o.offsets[0] * s.width),
+    y1: s.y + (o.offsets[1] * s.height),
+    x2: t.x + (o.offsets[2] * t.width),
+    y2: t.y + (o.offsets[3] * t.height),
+  };
+}
+
+
+/*
+export function getOrientation(source: RectangleLike, target: RectangleLike) {
+  return (
+    (((target.y + target.height) <= (source.y)) ? 8 : 0) | //T
+    (((target.x + target.width) <= (source.x)) ? 4 : 0) |  //L
+    (((target.y) >= (source.y + source.height)) ? 2 : 0) | //B
+    (((target.x) >= (source.x + source.width)) ? 1 : 0)   //R
+  );
+}
+*/

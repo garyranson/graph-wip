@@ -1,6 +1,6 @@
-import {Easing, Tween} from "./types";
+import {Tween} from "./types";
 import {Widget} from "template/widget";
-import {State, VertexState} from "core/types";
+import {VertexState} from "core/types";
 
 export class TranslateTween implements Tween {
   private dx: number;
@@ -9,10 +9,10 @@ export class TranslateTween implements Tween {
   private dw: number;
 
   constructor(
-    public widget: Widget<VertexState>,
+    public widget: Widget,
     private from: VertexState,
     private to: VertexState,
-    private parent?: Widget<State>,
+    private parent?: Widget,
   ) {
     this.dx = Math.round(this.to.x - this.from.x);
     this.dy = Math.round(this.to.y - this.from.y);
@@ -20,17 +20,17 @@ export class TranslateTween implements Tween {
     this.dw = Math.round(this.to.width - this.from.width);
   }
 
-  init() : void {
+  init(): void {
     if (this.parent) this.parent.appendChild(this.widget);
   }
 
-  execute(time: number, duration: number, easing: Easing): void {
+  execute(value: number): void {
     this.widget.refresh({
       ...this.from,
-      x: this.dx ? Math.round(easing(time, this.from.x, this.dx, duration)) : this.to.x,
-      y: this.dy ? Math.round(easing(time, this.from.y, this.dy, duration)) : this.to.y,
-      width: this.dw ? Math.round(easing(time, this.from.width, this.dw, duration)) : this.to.width,
-      height: this.dh ? Math.round(easing(time, this.from.height, this.dh, duration)) : this.to.height
+      x: Math.round(this.from.x + this.dx * value),
+      y: Math.round(this.from.y + this.dy * value),
+      width: Math.round(this.from.width + this.dw * value),
+      height: Math.round(this.from.height + this.dh * value)
     });
   }
 

@@ -1,17 +1,18 @@
 import {AppBus} from "bus/app-bus";
-import {ShadowWidgetFactory} from "template/shadow-widget-factory";
 import {RectangleLike, State, VertexState} from "core/types";
 import {DragHandler, DragHandlerFactory, WidgetDragEvent} from "./types";
 import {ModelConstraints} from "modules/constraints";
+import {ViewController} from "template/view-controller";
+import {CursorManager} from "template/cursor-manager";
 
 export const ResizerDragHandlerModule = {
-  $inject: ['AppBus', 'ShadowWidgetFactory','ModelConstraints'],
+  $inject: ['AppBus', 'ViewController','ModelConstraints','CursorManager'],
   $name: 'ResizerDragHandler',
   $item: 'resizer',
   $type: ResizerDragHandler
 }
 
-function ResizerDragHandler(appBus: AppBus, shadowFactory: ShadowWidgetFactory,constraints: ModelConstraints): DragHandlerFactory {
+function ResizerDragHandler(appBus: AppBus, canvas: ViewController,constraints: ModelConstraints, cursorManager: CursorManager): DragHandlerFactory {
 
   interface MoverFunction {
     (e: WidgetDragEvent): RectangleLike;
@@ -22,8 +23,8 @@ function ResizerDragHandler(appBus: AppBus, shadowFactory: ShadowWidgetFactory,c
   }
 
   function createResizer(vertex: VertexState, position: string): DragHandler {
-    const mover = moveFn(position);
-    let shadow = shadowFactory.createVertex(vertex, '$shape-resize', 'tool');
+    const mover = moveFn(position.toLowerCase());
+    const widget = cursorManager.create('$shape-resize').refresh(vertex).removeClass('px-off');
     const {x, y, width, height} = vertex;
     const minSize = constraints.getMinSize(vertex);
     const maxSize = constraints.getMaxSize(vertex);
@@ -31,26 +32,23 @@ function ResizerDragHandler(appBus: AppBus, shadowFactory: ShadowWidgetFactory,c
     return {move, drop, cancel}
 
     function move(e: WidgetDragEvent) {
-      shadow.update(mover(e));
+      widget.refresh(mover(e));
     }
 
     function drop(e: WidgetDragEvent) {
       appBus.resizeNode.fire({
         id: vertex.id,
         eventType: 'resize',
-        bounds: shadow.getBounds()
+        bounds: mover(e) //shadow.getBounds()
       });
       cancel();
     }
 
     function cancel() {
-      if (!shadow) return;
-      shadow.remove();
-      shadow = null;
+      cursorManager.release('$shape-resize',widget);
     }
 
     function moveFn(position: string): MoverFunction {
-      console.log('position:', position);
       return position === 'br'
         ? moveBR
         : position === 'tr'
@@ -90,85 +88,3 @@ function ResizerDragHandler(appBus: AppBus, shadowFactory: ShadowWidgetFactory,c
 
 function noop(): any {
 }
-
-/*
-
-
-
-import {AppBus} from "bus/app-bus";
-import {ShadowWidgetFactory} from "modules/shadow-widget-factory";
-import {RectangleLike, State, VertexState} from "core/types";
-import {DragHandler, DragHandlerFactory, WidgetDragEvent} from "./types";
-import {ModelController} from "modules/model-controller";
-import {ModelConstraints} from "modules/constraints";
-
-export const ResizerDragHandlerModule = {
-  $inject: ['AppBus', 'ShadowWidgetFactory', 'ModelController', 'ModelConstraints'],
-  $name: 'ResizerDragHandler',
-  $item: 'resizer',
-  $type: ResizerDragHandler
-}
-
-function ResizerDragHandler(
-  appBus: AppBus,
-  shadowFactory: ShadowWidgetFactory,
-  model: ModelController,
-  constraints: ModelConstraints
-): DragHandlerFactory {
-
-  interface DxDy {
-    dx: number;
-    dy: number;
-  }
-
-
-  return (state: State, actionData: string, x: number, y: number) => {
-    return createResizer(state as VertexState, actionData);
-  }
-
-  function createResizer(vertex: VertexState, position: string): DragHandler {
-    const mover = moveFn(position);
-    let shadow = shadowFactory.create(vertex, '$shape-resize', 'tool');
-    const {x, y, width, height} = vertex;
-    const minSize = constraints.getMinSize(vertex);
-    const maxSize = constraints.getMaxSize(vertex);
-
-    return {
-      move: (e: WidgetDragEvent) => {
-        console.log('const:',applyConstraints(e),e.dx,e.dy,minSize,maxSize,position);
-        shadow.update(
-          mover(
-            applyConstraints(e)
-          )
-        );
-      },
-      drop,
-      cancel
-    }
-
-    function applyConstraints(e: WidgetDragEvent): DxDy {
-      return {
-        dx: Math.round(Math.min(Math.max(width+ Math.abs(e.dx), minSize.width), maxSize.width) - width),
-        dy: Math.round(Math.min(Math.max(height+ Math.abs(e.dy), minSize.height), maxSize.height) - height)
-      }
-    }
-
-    function drop(e: WidgetDragEvent) {
-      appBus.resizeNode.fire({
-        id: vertex.id,
-        eventType: 'resize',
-        bounds: shadow.getBounds()
-      });
-      cancel();
-    }
-
-    function cancel() {
-      if (!shadow) return;
-      shadow.remove();
-      shadow = null;
-    }
-
-  }
-}
-
-*/

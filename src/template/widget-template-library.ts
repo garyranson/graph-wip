@@ -1,10 +1,12 @@
 import {WidgetTemplate} from "./widget-template";
 import {Widget} from "template/widget";
-import {State} from "core/types";
+import {StateIdType} from "core/types";
 
 export interface WidgetTemplateLibrary {
   get(name: string): WidgetTemplate;
-  create<T extends State>(state: T): Widget<T>;
+
+  create(type: string,id?: StateIdType): Widget;
+
   register(name: string, template: WidgetTemplate);
 }
 
@@ -13,26 +15,28 @@ export const WidgetTemplateLibraryModule = {
   $name: 'WidgetTemplateLibrary',
   $type: WidgetTemplateLibrary
 }
-function WidgetTemplateLibrary() : WidgetTemplateLibrary {
+
+function WidgetTemplateLibrary(): WidgetTemplateLibrary {
   const cache = new Map<string, WidgetTemplate>();
 
-  function get(name: string) {
+  return {
+    get,
+
+    create(type: string,id?: StateIdType): Widget {
+      try {
+        return get(type).createWidget(type, id);
+      } catch (e) {
+        console.log(`can't create Widget ${type}`);
+        throw e;
+      }
+    },
+
+    register(name: string, template: WidgetTemplate): void {
+      cache.set(name, template);
+    }
+  }
+
+  function get(name: string) : WidgetTemplate {
     return cache.get(name) || cache.get('default');
   }
-
-  function create<T extends State>(state: T): Widget<T> {
-    try {
-      return get(state.type).createWidget(state);
-    }
-    catch(e) {
-      console.log(`can't create Widget ${state.type}`);
-      throw e;
-    }
-  }
-
-  function register(name: string, template: WidgetTemplate): void {
-    cache.set(name, template);
-  }
-
-  return {get, create, register}
 }

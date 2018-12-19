@@ -26,7 +26,13 @@ function ModelConstraints(shapes: ShapeLibrary,graph: Graph): ModelConstraints {
   function isSelectable(state: State|string) : boolean {
     if(!state) return false;
     const s = typeof state === 'string' ? graph.getState(state) : state;
-    return s && shapes.get(s.type).isSelectable ? true : false;
+    if(!s) return;
+    const sh = shapes.get(s.type);
+    if(!sh) {
+      console.log('not sure what this is:'+s.type);
+      return;
+    }
+    return sh.isSelectable ? true : false;
   }
 
 

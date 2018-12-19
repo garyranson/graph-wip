@@ -5,21 +5,26 @@ import {ContainmentManager} from "modules/containment-manager";
 import {Graph} from "modules/graph";
 import {ShapeLibrary} from "modules/shape-library";
 import {DragFeedbackHandlers} from "layout/feedback-manager";
+import {CursorManager} from "template/cursor-manager";
+import {Widget} from "template/widget";
 
-export const MoverDragHandlerModule = {
-  $inject: ['AppBus', 'Graph', 'ContainmentManager', 'ShapeLibrary', 'DragFeedbackHandlers'],
-  $name: 'MoverDragHandler',
-  $type: MoverDragHandler,
+export const WidgetMoverDragHandlerModule = {
+  $inject: ['AppBus', 'Graph', 'ContainmentManager', 'ShapeLibrary', 'DragFeedbackHandlers', 'CursorManager'],
+  $name: 'WidgetMoverDragHandler',
+  $type: WidgetMoverDragHandler,
   $item: 'mover'
 }
 
-function MoverDragHandler(
+function WidgetMoverDragHandler(
   appBus: AppBus,
   graph: Graph,
   container: ContainmentManager,
   shapeLibrary: ShapeLibrary,
-  feedbackHandlers: DragFeedbackHandlers
+  feedbackHandlers: DragFeedbackHandlers,
+  cursorManager: CursorManager
 ): DragHandlerFactory {
+
+  const cursor = Cursor('$drag-highlight');
 
   return (state: State) => {
     return createMover(state as VertexState);
@@ -59,43 +64,53 @@ function MoverDragHandler(
     function _cancel() {
       if (feedback) feedback.destroy();
       appBus.widgetDragAction.fire({type: 'drag-end', id: vertex.id});
-      if (dropVertexId) _updateHighlight('off');
+      cursor.release();
+      //if (dropVertexId) _updateHighlight('off');
       dropVertexId = null;
       feedback = null;
     }
 
     function _ensureFeedback(id: StateIdType) {
-      if (overVertexId === id) return;
-      overVertexId === id;
+      if (overVertexId !== id) {
+        overVertexId === id;
+        closestChanged(container.getClosestContainer(id, vertex.id));
+      }
+    }
 
-      const over = container.getClosestContainer(id, vertex.id);
+    function closestChanged(to: StateIdType): void {
+      if (dropVertexId === to) return;
 
-      if (over === dropVertexId) return;
-      _updateHighlight('off');
-      dropVertexId = over;
+      if (to) {
+        cursor.on(to, graph.getCanvasBounds(to));
 
-      if (feedback) {
+        const state = graph.getState(to);
+        const shape = shapeLibrary.get(state.type);
+        const factory = feedbackHandlers.get(shape.hasFeedback);
+        if (feedback) feedback.destroy();
+        feedback = factory ? factory(vertex.id, to) : null;
+      } else if (feedback) {
         feedback.destroy();
         feedback = null;
       }
-
-      if (!dropVertexId) return;
-      _updateHighlight('on');
-
-      const state = graph.getState(over);
-      const s = shapeLibrary.get(state.type);
-      const factory = feedbackHandlers.get(s.hasFeedback);
-      feedback = factory ? factory(vertex.id, over) : null;
+      dropVertexId = to;
     }
+  }
 
-    function _updateHighlight(selectionState: "on" | "off"): void {
-      appBus.widgetSelection.fire({
-        type: 'drag',
-        template: '$drag-highlight',
-        selectionState,
-        bounds: graph.getCanvasBounds(dropVertexId),
-        id:dropVertexId
-      });
+  function Cursor(type: string) {
+    let _widget: Widget;
+    let _id: StateIdType;
+
+    return {
+      on(id: StateIdType, state: object) {
+        if (id === _id) return;
+        if (_id) cursorManager.release(type, _widget, _id);
+        if (id) _widget = cursorManager.create(type, id).refresh(state).removeClass('px-off');
+        _id = id;
+      },
+      release() {
+        if (_id) cursorManager.release(type, _widget, _id);
+        _id = undefined;
+      }
     }
   }
 }

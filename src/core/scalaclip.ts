@@ -10,14 +10,26 @@ const mask = [0, 1, 2, 2, 4, 0, 4, 4, 8, 1, 0, 2, 8, 1, 8, 0];
 const tab1 = [e4, e3, e0, e3, e1, e4, e0, e3, e2, e2, e4, e2, e1, e1, e0, e4];
 const tab2 = [e4, e0, e1, e1, e2, e4, e2, e2, e3, e0, e4, e1, e3, e0, e3, e4];
 
-export function clipLine(r: RectangleLike, l: LineLike): LineLike&{t:number} {
+
+export function getLine(source: RectangleLike, target: RectangleLike, l:LineLike) : LineLike {
+  const s = clipLine(source, l);
+  if(!target) return s;
+  const t = clipLine(target, l);
+  return {x1: s.x1, y1: s.y1, x2: t.x2, y2: t.y2};
+}
+
+function clipLine(r: RectangleLike, l: LineLike): LineLike&{t:number} {
   const b = {l: r.x, r: r.x + r.width, t: r.y, b: r.y + r.height};
   const c1 = (((l.x1 < b.l) ? 8 : (l.x1 > b.r) ? 2 : 0) + ((l.y1 < b.t) ? 1 : (l.y1 > b.b) ? 4 : 0));
   const c2 = (((l.x2 < b.l) ? 8 : (l.x2 > b.r) ? 2 : 0) + ((l.y2 < b.t) ? 1 : (l.y2 > b.b) ? 4 : 0));
 
   if ((c1 | c2) == 0 || (c1 & c2) != 0) return {t: -1, x1: l.x1, y1: l.y1, x2: l.x2, y2: l.y2};
 
-  const p = {x: l.x2 - l.x1, y: l.y1 - l.y2, z: l.x1 * l.y2 - l.y1 * l.x2};
+  const p = {
+    x: l.x2 - l.x1,
+    y: l.y1 - l.y2,
+    z: l.x1 * l.y2 - l.y1 * l.x2
+  };
 
   const c =
     (((p.y * b.l + p.x * b.t + p.z) <= 0) ? 1 : 0) +

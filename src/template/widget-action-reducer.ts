@@ -20,7 +20,7 @@ export function widgetActionReducer(values: WidgetTemplateAction[]) {
   }
 }
 
-function r0(el: SVGElement, gp: RectangleLike) : void {
+function r0() : void {
 }
 
 function r2(x1: WidgetTemplateAction, x2: WidgetTemplateAction) : WidgetTemplateAction {
@@ -60,4 +60,3 @@ function rN(values:WidgetTemplateAction[]) : WidgetTemplateAction {
     }
   };
 }
-

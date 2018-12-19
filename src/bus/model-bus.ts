@@ -6,14 +6,11 @@ export interface ModelBusEvent {
   eventType: string;
 }
 
-export interface ModelBusMoveNodeEvent2 extends ModelBusEvent {
+export interface ModelBusMoveNodeEvent extends ModelBusEvent {
   target: StateIdType;
-  index: VertexMove;
-}
-export interface ModelBusMoveNodeEvent1 extends ModelBusEvent {
-  target: StateIdType;
-  x: number;
-  y: number;
+  index?: VertexMove;
+  x?: number;
+  y?: number;
 }
 
 export interface ModelBusResizeNodeEvent extends ModelBusEvent {
@@ -22,7 +19,9 @@ export interface ModelBusResizeNodeEvent extends ModelBusEvent {
 
 export interface ModelBusCreateEdgeEvent extends ModelBusEvent {
   from: StateIdType,
-  to: StateIdType
+  to: StateIdType,
+  sourcePortIndex: number,
+  targetPortIndex: number
 }
 
 export interface NodeBusSelectEvent {
@@ -33,7 +32,7 @@ export interface ModelBus {
   createNode: EventDelegate<ModelBusEvent>;
   removeNode: EventDelegate<ModelBusEvent>;
   selectNode: EventDelegate<NodeBusSelectEvent>;
-  moveNode: EventDelegate<ModelBusMoveNodeEvent1|ModelBusMoveNodeEvent1>;
+   moveNode: EventDelegate<ModelBusMoveNodeEvent>;
   resizeNode: EventDelegate<ModelBusResizeNodeEvent>;
   createEdge: EventDelegate<ModelBusCreateEdgeEvent>;
 }
@@ -43,7 +42,7 @@ export function createModelBus(callback?: ExceptionCallback): ModelBus {
     createNode: createDelegate<ModelBusEvent>(callback),
     removeNode: createDelegate<ModelBusEvent>(callback),
     selectNode: createDelegate<NodeBusSelectEvent>(callback),
-    moveNode: createDelegate<ModelBusMoveNodeEvent1|ModelBusMoveNodeEvent1>(callback),
+    moveNode: createDelegate<ModelBusMoveNodeEvent>(callback),
     resizeNode: createDelegate<ModelBusResizeNodeEvent>(callback),
     createEdge: createDelegate<ModelBusCreateEdgeEvent>(callback),
   }

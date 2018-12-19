@@ -1,38 +1,47 @@
 import {RectangleLike} from "core/types";
-import {CompiledFunction} from "expression-compiler";
 
 export const XyRatioAction = {
   $type: xyRatioFactory,
   $name: 'xy-ratio',
-  $item: 'expr',
+  $item: 'split',
 }
 
-function xyRatioFactory(constant: boolean,args: []) {
-  return constant
-    ? xyRatioFactoryC(args)
-    : xyRatioFactoryV(args);
+const dir = {
+  tl: [0.0, 0.0],
+  tm: [0.5, 0.0],
+  tr: [1.0, 0.0],
+  ml: [0.0, 0.5],
+  mm: [0.5, 0.5],
+  mr: [1.0, 0.5],
+  bl: [0.0, 1.0],
+  bm: [0.5, 1.0],
+  br: [1.0, 1.0]
 }
 
-function xyRatioFactoryC(o: any[]) {
-  const xratio = o[0] || 0;
-  const yratio = o[1] || 0;
-  const xoffset = o[2] || 0;
-  const yoffset = o[3] || 0;
+function xyRatioFactory(words: string) {
+  return words.length > 1
+    ? WithOffset(
+      dir[words[0]] || dir.tl,
+      parseFloat(words[1]) || 0,
+      parseFloat(words[2]) || 0
+    )
+    : NoOffset(
+      dir[words[0]] || dir.tl
+    );
+}
 
+function NoOffset(ratio: number[]) {
+  const xratio = ratio[0];
+  const yratio = ratio[1];
   return (el: SVGElement, gp: RectangleLike): void => {
-    el.setAttribute("x", <any>((gp.width * xratio) + xoffset));
-    el.setAttribute("y", <any>((gp.height * yratio) + yoffset));
+    el.setAttribute("transform", `translate(${(gp.width * xratio)},${(gp.height * yratio)})`);
   };
 }
 
-function xyRatioFactoryV(o: CompiledFunction[]) {
-  const xratio = o[0];
-  const yratio = o[1] || xratio;
-  const xoffset = o[2];
-  const yoffset = o[3];
-
+function WithOffset(ratio: number[], offsetX: number, offsetY: number) {
+  const xratio = ratio[0];
+  const yratio = ratio[1];
   return (el: SVGElement, gp: RectangleLike): void => {
-    el.setAttribute("x", <any>((gp.width * xratio(gp)) + (xoffset ? xoffset(gp) : 0)));
-    el.setAttribute("y", <any>((gp.height * yratio(gp)) + (yoffset ? yoffset(gp) : 0)));
-  }
+    el.setAttribute("transform", `translate(${offsetX + (gp.width * xratio)},${offsetY + (gp.height * yratio)})`);
+  };
 }

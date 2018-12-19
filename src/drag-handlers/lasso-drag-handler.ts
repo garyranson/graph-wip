@@ -1,16 +1,16 @@
 import {AppBus} from "bus/app-bus";
-import {ShadowWidgetFactory} from "template/shadow-widget-factory";
 import {RectangleLike, State, VertexState} from "core/types";
 import {DragHandler, DragHandlerFactory, WidgetDragEvent} from "./types";
+import {ViewController} from "template/view-controller";
 
 export const LassoDragHandlerModule = {
-  $inject: ['AppBus', 'ShadowWidgetFactory'],
+  $inject: ['AppBus', 'ViewController'],
   $name: 'LassoDragHandler',
   $item: 'lasso',
   $type: LassoDragHandler
 }
 
-function LassoDragHandler(appBus: AppBus, shadowFactory: ShadowWidgetFactory): DragHandlerFactory {
+function LassoDragHandler(appBus: AppBus, canvas: ViewController): DragHandlerFactory {
 
   return (state: State, actionData: string, x: number, y: number) => {
     return createLasso(
@@ -21,12 +21,12 @@ function LassoDragHandler(appBus: AppBus, shadowFactory: ShadowWidgetFactory): D
   }
 
   function createLasso(vertex: VertexState, x: number, y: number): DragHandler {
-    const widget = shadowFactory.createVertex(vertex, '$lasso', 'tool');
+    const widget = canvas.createToolWidget('$lasso', vertex);
 
     return {move, drop, cancel}
 
     function move(e: WidgetDragEvent): void {
-      widget.update(_move(e.dx, e.dy));
+      widget.refresh(_move(e.dx, e.dy));
     }
 
     function _move(dx: number, dy: number): RectangleLike {
@@ -47,7 +47,7 @@ function LassoDragHandler(appBus: AppBus, shadowFactory: ShadowWidgetFactory): D
     }
 
     function drop(e: WidgetDragEvent) {
-      appBus.selectNode.fire({bounds: widget.getBounds()});
+      appBus.selectNode.fire({bounds: _move(e.dx,e.dy)});
       cancel();
     }
 
